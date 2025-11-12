@@ -1,0 +1,15 @@
+---
+title: "Exploratory Data Analysis (EDA)"
+author: "Harriet O'Brien, Vy Tran, Saniyah Khan"
+format: 
+    html:
+        toc: true
+        number-sections: true
+        theme: cosmo
+---
+
+
+# Introduction:
+The goal of this exploratory data analysis is to understand the historical reimbursement patterns in ACME Corporation's legacy system. 
+
+We will summarize and visualize the data to identify trends, relationships, and potential business rules that influence the reimbursement amount. 
