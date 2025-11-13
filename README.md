@@ -13,6 +13,9 @@ The objective is to **reverse-engineer a 60-year-old travel reimbursement system
 
 Teams act as ML consultants tasked with discovering the **hidden business logic** of the legacy system and developing a **predictive model** that replicates its reimbursement behavior.
 
+**Scenario: Your team has been hired as ML consultants by ACME Corporation. Their legacy reimbursement system has been running for 60 years, no one knows how it works, but it is still used daily. A new system has been built, but the ACME Corporation is confused by the differences in results. Your mission is to use machine learning to understand the original business logic and create a model that can explain and predict the legacy system’s behavior.**
+
+
 ---
 
 ## Project Goals
