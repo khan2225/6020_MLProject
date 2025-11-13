@@ -67,7 +67,7 @@ By completing this project, we aim to:
 | **Data Scientist / Analyst** | Leads EDA, feature engineering, and visualization |
 | **ML Engineer** | Builds and tunes ML models |
 | **Business Analyst** | Analyzes PRD & interviews, interprets results, writes business insights |
-| **Software Engineer (optional)** | Develops final prediction script and testing pipeline |
+
 
 ---
 
