@@ -15,7 +15,7 @@ The goal of this exploratory data analysis is to understand the historical reimb
 We will summarize and visualize the data to identify trends, relationships, and potential business rules that influence the reimbursement amount. 
 
 
-```python
+```{python}
 # Basic imports
 import pandas as pd
 import numpy as np
@@ -26,7 +26,7 @@ import seaborn as sns
 pd.set_option('display.max_columns', None)
 sns.set(style="whitegrid")
 ```
-```python
+```{python}
 import json
 
 # Load JSON dataset
@@ -36,12 +36,12 @@ with open("../public_cases.json", "r") as f:
 df = pd.DataFrame(data)
 df.head()
 ```
-```python
+```{python}
 df.info()
 df.describe()
 df.isnull().sum()
 ```
-```python
+```{python}
 num_cols = ['trip_duration_days', 'miles_traveled', 'total_receipts_amount', 'reimbursement_amount']
 
 for col in num_cols:
@@ -50,24 +50,24 @@ for col in num_cols:
     plt.title(f"Distribution of {col}")
     plt.show()
 ```
-```python
+```{python}
 plt.figure(figsize=(8,6))
 sns.heatmap(df.corr(), annot=True, cmap="coolwarm", fmt=".2f")
 plt.title("Correlation Heatmap")
 plt.show()
 ```
-```python
+```{python}
 sns.pairplot(df[num_cols])
 plt.show()
 ```
-```python
+```{python}
 for col in num_cols:
     plt.figure(figsize=(5,4))
     sns.boxplot(x=df[col])
     plt.title(f"Outliers in {col}")
     plt.show()
 ```
-```python
+```{python}
 df.columns
 ```
 ## Summary of Findings
@@ -83,5 +83,6 @@ df.columns
   - Longer trips → higher reimbursement
   - Higher miles traveled → potentially additional mileage reimbursement
   - Receipts strongly influence total reimbursement amount
+
 
 
