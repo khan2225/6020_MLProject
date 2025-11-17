@@ -30,7 +30,7 @@ sns.set(style="whitegrid")
 import json
 
 # Load JSON dataset
-with open("../public_cases.json", "r") as f:
+with open("../data/public_cases.json", "r") as f:
     data = json.load(f)
 
 df = pd.DataFrame(data)
@@ -42,28 +42,36 @@ df.describe()
 df.isnull().sum()
 ```
 ```{python}
-num_cols = ['trip_duration_days', 'miles_traveled', 'total_receipts_amount', 'reimbursement_amount']
+features = pd.json_normalize(df['input'])
+features['reimbursement_amount'] = df['expected_output']
+
+features.head()
+features.info()
+```
+```{python}
+num_cols = ['trip_duration_days', 'miles_traveled',
+            'total_receipts_amount', 'reimbursement_amount']
 
 for col in num_cols:
     plt.figure(figsize=(6,4))
-    sns.histplot(df[col], kde=True)
+    sns.histplot(features[col], kde=True)
     plt.title(f"Distribution of {col}")
     plt.show()
 ```
 ```{python}
 plt.figure(figsize=(8,6))
-sns.heatmap(df.corr(), annot=True, cmap="coolwarm", fmt=".2f")
+sns.heatmap(features.corr(), annot=True, cmap="coolwarm", fmt=".2f")
 plt.title("Correlation Heatmap")
 plt.show()
 ```
 ```{python}
-sns.pairplot(df[num_cols])
+sns.pairplot(features[num_cols])
 plt.show()
 ```
 ```{python}
 for col in num_cols:
     plt.figure(figsize=(5,4))
-    sns.boxplot(x=df[col])
+    sns.boxplot(x=features[col])
     plt.title(f"Outliers in {col}")
     plt.show()
 ```
@@ -83,6 +91,7 @@ df.columns
   - Longer trips → higher reimbursement
   - Higher miles traveled → potentially additional mileage reimbursement
   - Receipts strongly influence total reimbursement amount
+
 
 
 
