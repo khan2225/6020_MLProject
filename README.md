@@ -1,7 +1,7 @@
 # CSCI / DASC 6020: Machine Learning Team Project
 ### *Black Box Legacy Reimbursement System (Top Coder Challenge)*
 
-**Authors:** Harriet O’Brien, Vy Tran, Saniyah Khan  
+**Authors:** Harriet O’Brien, Vy Tran, Saniyah Khan, Rehinatu Usman  
 **Course:** CSCI / DASC 6020 — Machine Learning  
 **Date:** Fall 2025  
 
@@ -53,8 +53,12 @@ By completing this project, we aim to:
 - Model evaluation and interpretability  
 
 ### **Phase 3 — System Integration (Weeks 6–7)**
-- Create production-ready prediction script `predict.py`  
-- Develop preprocessing and post-processing pipelines  
+- Develop and finalize the `predict.py` script.
+- Load the serialized model (`final_model.pkl`) and return a single prediction.
+- Add input validation, error handling, and runtime checks.
+- Ensure the script runs in under 5 seconds per test case.
+- Test model outputs with various input combinations.
+- Finalize GitHub documentation and ensure all Quarto notebooks render correctly. 
 
 ### **Phase 4 — Business Communication (Week 8)**
 - Technical report (15–20 pages)  
@@ -70,7 +74,7 @@ By completing this project, we aim to:
 | **Data Scientist / Analyst** | Leads EDA, feature engineering, and visualization |
 | **ML Engineer** | Builds and tunes ML models |
 | **Business Analyst** | Analyzes PRD & interviews, interprets results, writes business insights |
-
+| **Software Engineer** | Develops production-ready code for model integration. Implements 'prediction.py' for inference, manages preprocessing and post-processing pipelines, ensures code quality and reproducibility |
 
 ---
 
