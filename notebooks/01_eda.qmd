@@ -1,6 +1,6 @@
 ---
 title: "Exploratory Data Analysis (EDA)"
-author: "Harriet O'Brien, Vy Tran, Saniyah Khan"
+author: "Harriet O'Brien, Vy Tran, Saniyah Khan, Rehinatu Usman"
 format: 
     html:
         toc: true
@@ -83,4 +83,5 @@ df.columns
   - Longer trips → higher reimbursement
   - Higher miles traveled → potentially additional mileage reimbursement
   - Receipts strongly influence total reimbursement amount
+
 
