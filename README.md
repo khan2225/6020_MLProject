@@ -85,7 +85,7 @@ By completing this project, we aim to:
 - **Harriet O’Brien** — Machine Learning Engineer  
 - **Vy Tran** — Data Scientist  
 - **Saniyah Khan** — Business Analyst  
-- **Rehinatu [Last Name]** — Software Engineer  
+- **Rehinatu Usman** — Software Engineer  
 
 ---
 
