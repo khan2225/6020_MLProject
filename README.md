@@ -199,10 +199,12 @@ By completing this project, we aim to:
 
 ---
 
+---
+
 ## Progress Tracking
-- Each member should **push commits to their branch** by Friday each week.  
+- Each member should **push commits to their branch** by Sunday each week.  
 - Create **pull requests to `main`** by Sunday evening after review.  
-- Keep a shared checklist (e.g., Google Doc or GitHub Projects board) to log weekly goals and completion status.  
+- Share what they have completed in the Teams chat and next steps they are planning to do.   
 
 ---
 
