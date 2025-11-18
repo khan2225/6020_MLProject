@@ -6,13 +6,9 @@
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
-<<<<<<< HEAD
-<meta name="author" content="Harriet O’Brien, Vy Tran, Saniyah Khan">
-=======
 <meta name="author" content="Harriet O’Brien, Vy Tran, Saniyah Khan, Rehinatu Usman">
->>>>>>> vy-tran
 
-<title>Exploratory Data Analysis (EDA)</title>
+<title>eda</title>
 <style>
 code{white-space: pre-wrap;}
 span.smallcaps{font-variant: small-caps;}
@@ -25,12 +21,6 @@ ul.task-list li input[type="checkbox"] {
   margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
   vertical-align: middle;
 }
-<<<<<<< HEAD
-</style>
-
-
-<script src="01_eda_files/libs/clipboard/clipboard.min.js"></script>
-=======
 /* CSS for syntax highlighting */
 html { -webkit-text-size-adjust: 100%; }
 pre > code.sourceCode { white-space: pre; position: relative; }
@@ -70,7 +60,6 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 
 
 <script src="https://cdn.jsdelivr.net/npm/jquery@3.5.1/dist/jquery.min.js" integrity="sha384-ZvpUoO/+PpLXR1lu4jmpXWu80pZlYUAfxl5NsBMWOEPSjUn/6Z/hRTt8+pR6L4N2" crossorigin="anonymous"></script><script src="01_eda_files/libs/clipboard/clipboard.min.js"></script>
->>>>>>> vy-tran
 <script src="01_eda_files/libs/quarto-html/quarto.js" type="module"></script>
 <script src="01_eda_files/libs/quarto-html/tabsets/tabsets.js" type="module"></script>
 <script src="01_eda_files/libs/quarto-html/axe/axe-check.js" type="module"></script>
@@ -81,40 +70,18 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <link href="01_eda_files/libs/quarto-html/quarto-syntax-highlighting-587c61ba64f3a5504c4d52d930310e48.css" rel="stylesheet" id="quarto-text-highlighting-styles">
 <script src="01_eda_files/libs/bootstrap/bootstrap.min.js"></script>
 <link href="01_eda_files/libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
-<<<<<<< HEAD
-<link href="01_eda_files/libs/bootstrap/bootstrap-a74871fe4945b66d259aafc266475145.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
-=======
-<link href="01_eda_files/libs/bootstrap/bootstrap-4d7f0bce1131f3e5f9547cd857cfbfc8.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<link href="01_eda_files/libs/bootstrap/bootstrap-9e3ffae467580fdb927a41352e75a2e0.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
 <script src="https://cdn.jsdelivr.net/npm/requirejs@2.3.6/require.min.js" integrity="sha384-c9c+LnTbwQ3aujuU7ULEPVvgLs+Fn6fJUvIGTsuu1ZcCf11fiEubah0ttpca4ntM sha384-6V1/AdqZRWk1KAlWbKBlGhN7VG4iE/yAZcO6NZPMF8od0vukrvr0tg4qY6NSrItx" crossorigin="anonymous"></script>
 
 <script type="application/javascript">define('jquery', [],function() {return window.jQuery;})</script>
->>>>>>> vy-tran
 
 
 </head>
 
-<body class="quarto-light">
+<body class="fullcontent quarto-light">
 
 <div id="quarto-content" class="page-columns page-rows-contents page-layout-article">
-<div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
-  <nav id="TOC" role="doc-toc" class="toc-active">
-    <h2 id="toc-title">Table of contents</h2>
-   
-  <ul>
-  <li><a href="#introduction" id="toc-introduction" class="nav-link active" data-scroll-target="#introduction"><span class="header-section-number">1</span> Introduction:</a></li>
-<<<<<<< HEAD
-=======
-  <li><a href="#basic-set-up" id="toc-basic-set-up" class="nav-link" data-scroll-target="#basic-set-up"><span class="header-section-number">2</span> Basic set up</a></li>
-  <li><a href="#normalize-json-structure" id="toc-normalize-json-structure" class="nav-link" data-scroll-target="#normalize-json-structure"><span class="header-section-number">3</span> Normalize JSON structure</a></li>
-  <li><a href="#histogram" id="toc-histogram" class="nav-link" data-scroll-target="#histogram"><span class="header-section-number">4</span> Histogram</a></li>
-  <li><a href="#correlation-heatmap" id="toc-correlation-heatmap" class="nav-link" data-scroll-target="#correlation-heatmap"><span class="header-section-number">5</span> Correlation Heatmap</a></li>
-  <li><a href="#pairplot" id="toc-pairplot" class="nav-link" data-scroll-target="#pairplot"><span class="header-section-number">6</span> Pairplot</a></li>
-  <li><a href="#boxplots-outlier-analysis" id="toc-boxplots-outlier-analysis" class="nav-link" data-scroll-target="#boxplots-outlier-analysis"><span class="header-section-number">7</span> Boxplots (Outlier Analysis)</a></li>
-  <li><a href="#summary-of-findings" id="toc-summary-of-findings" class="nav-link" data-scroll-target="#summary-of-findings"><span class="header-section-number">8</span> Summary of Findings</a></li>
->>>>>>> vy-tran
-  </ul>
-</nav>
-</div>
+
 <main class="content" id="quarto-document-content">
 
 <header id="title-block-header" class="quarto-title-block default">
@@ -126,16 +93,6 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 
 <div class="quarto-title-meta">
 
-    <div>
-    <div class="quarto-title-meta-heading">Author</div>
-    <div class="quarto-title-meta-contents">
-<<<<<<< HEAD
-             <p>Harriet O’Brien, Vy Tran, Saniyah Khan </p>
-=======
-             <p>Harriet O’Brien, Vy Tran, Saniyah Khan, Rehinatu Usman </p>
->>>>>>> vy-tran
-          </div>
-  </div>
     
   
     
@@ -146,16 +103,17 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </header>
 
 
-<section id="introduction" class="level1" data-number="1">
-<h1 data-number="1"><span class="header-section-number">1</span> Introduction:</h1>
+<section id="head" class="level2">
+<h2 class="anchored" data-anchor-id="head">&lt;&lt;&lt;&lt;&lt;&lt;&lt; HEAD</h2>
+</section>
+<section id="introduction" class="level1">
+<h1>Introduction:</h1>
 <p>The goal of this exploratory data analysis is to understand the historical reimbursement patterns in ACME Corporation’s legacy system.</p>
 <p>We will summarize and visualize the data to identify trends, relationships, and potential business rules that influence the reimbursement amount.</p>
 </section>
-<<<<<<< HEAD
-=======
-<section id="basic-set-up" class="level1" data-number="2">
-<h1 data-number="2"><span class="header-section-number">2</span> Basic set up</h1>
-<div id="bbbb1d23" class="cell" data-execution_count="1">
+<section id="basic-set-up" class="level1">
+<h1>Basic set up</h1>
+<div id="729820ea" class="cell" data-execution_count="1">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Basic imports for data manipulation and visualization.</span></span>
 <span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> pandas <span class="im">as</span> pd</span>
 <span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> numpy <span class="im">as</span> np</span>
@@ -166,7 +124,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>pd.set_option(<span class="st">'display.max_columns'</span>, <span class="va">None</span>)</span>
 <span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a>sns.<span class="bu">set</span>(style<span class="op">=</span><span class="st">"whitegrid"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
-<div id="afb76dac" class="cell" data-execution_count="2">
+<div id="3eea5cdb" class="cell" data-execution_count="2">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb2"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> json</span>
 <span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a><span class="co"># Load JSON dataset</span></span>
@@ -219,7 +177,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </div>
 </div>
 </div>
-<div id="41c8cdd4" class="cell" data-execution_count="3">
+<div id="e8901126" class="cell" data-execution_count="3">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb3"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>df.info()</span>
 <span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>df.describe()</span>
 <span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>df.isnull().<span class="bu">sum</span>()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
@@ -241,9 +199,9 @@ dtype: int64</code></pre>
 </div>
 </div>
 </section>
-<section id="normalize-json-structure" class="level1" data-number="3">
-<h1 data-number="3"><span class="header-section-number">3</span> Normalize JSON structure</h1>
-<div id="e8a12cd0" class="cell" data-execution_count="4">
+<section id="normalize-json-structure" class="level1">
+<h1>Normalize JSON structure</h1>
+<div id="7b3b693d" class="cell" data-execution_count="4">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb6"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>features <span class="op">=</span> pd.json_normalize(df[<span class="st">'input'</span>])</span>
 <span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>features[<span class="st">'reimbursement_amount'</span>] <span class="op">=</span> df[<span class="st">'expected_output'</span>]</span>
 <span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a></span>
@@ -264,9 +222,9 @@ memory usage: 31.4 KB</code></pre>
 </div>
 </div>
 </section>
-<section id="histogram" class="level1" data-number="4">
-<h1 data-number="4"><span class="header-section-number">4</span> Histogram</h1>
-<div id="69cc5beb" class="cell" data-execution_count="5">
+<section id="histogram" class="level1">
+<h1>Histogram</h1>
+<div id="76029b30" class="cell" data-execution_count="5">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb8"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>num_cols <span class="op">=</span> [<span class="st">'trip_duration_days'</span>, <span class="st">'miles_traveled'</span>,</span>
 <span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>            <span class="st">'total_receipts_amount'</span>, <span class="st">'reimbursement_amount'</span>]</span>
 <span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a></span>
@@ -313,9 +271,9 @@ memory usage: 31.4 KB</code></pre>
 <p>Histogram of reimbursement_amount</p>
 <p>Reimbursement_amount is right-skewed with a concentration between 1200–1800. Higher reimbursements are less frequent but appear consistently, suggesting they may correspond to longer trips or greater miles traveled.</p>
 </section>
-<section id="correlation-heatmap" class="level1" data-number="5">
-<h1 data-number="5"><span class="header-section-number">5</span> Correlation Heatmap</h1>
-<div id="a3b5ef71" class="cell" data-execution_count="6">
+<section id="correlation-heatmap" class="level1">
+<h1>Correlation Heatmap</h1>
+<div id="2e6c0eae" class="cell" data-execution_count="6">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb9"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a>plt.figure(figsize<span class="op">=</span>(<span class="dv">8</span>,<span class="dv">6</span>))</span>
 <span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>sns.heatmap(features.corr(), annot<span class="op">=</span><span class="va">True</span>, cmap<span class="op">=</span><span class="st">"coolwarm"</span>, fmt<span class="op">=</span><span class="st">".2f"</span>)</span>
 <span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a>plt.title(<span class="st">"Correlation Heatmap"</span>)</span>
@@ -336,9 +294,9 @@ memory usage: 31.4 KB</code></pre>
 </ul>
 <p>This indicates the reimbursement formula likely depends on both mileage and receipt totals.</p>
 </section>
-<section id="pairplot" class="level1" data-number="6">
-<h1 data-number="6"><span class="header-section-number">6</span> Pairplot</h1>
-<div id="ece21f7a" class="cell" data-execution_count="7">
+<section id="pairplot" class="level1">
+<h1>Pairplot</h1>
+<div id="d76656c7" class="cell" data-execution_count="7">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb10"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a>sns.pairplot(features[num_cols])</span>
 <span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>plt.show()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-display">
@@ -351,9 +309,9 @@ memory usage: 31.4 KB</code></pre>
 </div>
 <p>The pairplot reveals: A visible positive relationship between total_receipts_amount and reimbursement_amount. A moderate upward trend between trip_duration_days and reimbursement_amount. High variance in miles_traveled, confirming diverse travel distances. No strong nonlinear patterns or clusters are present, suggesting the dataset is fairly continuous.</p>
 </section>
-<section id="boxplots-outlier-analysis" class="level1" data-number="7">
-<h1 data-number="7"><span class="header-section-number">7</span> Boxplots (Outlier Analysis)</h1>
-<div id="73956fc2" class="cell" data-execution_count="8">
+<section id="boxplots-outlier-analysis" class="level1">
+<h1>Boxplots (Outlier Analysis)</h1>
+<div id="c5e1a29e" class="cell" data-execution_count="8">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb11"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> col <span class="kw">in</span> num_cols:</span>
 <span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a>    plt.figure(figsize<span class="op">=</span>(<span class="dv">5</span>,<span class="dv">4</span>))</span>
 <span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a>    sns.boxplot(x<span class="op">=</span>features[col])</span>
@@ -389,15 +347,15 @@ memory usage: 31.4 KB</code></pre>
 </div>
 </div>
 <p>Outliers in trip_duration_days: a few trips extend to the maximum of 14 days, indicating possible special corporate assignments. Outliers in miles_traveled: long-distance outliers (&gt;1200 miles) are present, likely representing air travel or multi-state trips. Outliers in total_receipts_amount: high-receipt outliers (&gt;2000) suggest multi-category expenses or longer durations. Outliers in reimbursement_amount: reimbursement outliers match the receipt and mileage outliers, confirming consistency in the reimbursement rules.</p>
-<div id="88aac5ce" class="cell" data-execution_count="9">
+<div id="7e9bd54e" class="cell" data-execution_count="9">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb12"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a>df.columns</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-display" data-execution_count="9">
 <pre><code>Index(['input', 'expected_output'], dtype='object')</code></pre>
 </div>
 </div>
 </section>
-<section id="summary-of-findings" class="level1" data-number="8">
-<h1 data-number="8"><span class="header-section-number">8</span> Summary of Findings</h1>
+<section id="summary-of-findings" class="level1">
+<h1>Summary of Findings</h1>
 <p>Overall, this exploratory analysis suggests that:</p>
 <ul>
 <li><p>The dataset is structurally sound and free of missing values in the key fields.</p></li>
@@ -405,10 +363,9 @@ memory usage: 31.4 KB</code></pre>
 <li><p>Reimbursement amount is driven mainly by total receipts, with miles traveled providing an additional, secondary influence.</p></li>
 <li><p>Trip duration has a weaker direct relationship with reimbursement, which hints that ACME’s policy is more cost-based than time-based.</p></li>
 <li><p>Outliers in distance, receipts, and reimbursement appear to reflect legitimate high-cost or long-distance trips rather than data quality problems.</p></li>
-<li><p>These patterns provide a clear basis for the next step: building and evaluating predictive models that estimate reimbursement amounts from trip characteristics.</p></li>
+<li><p>These patterns provide a clear basis for the next step: building and evaluating predictive models that estimate reimbursement amounts from trip characteristics. &gt;&gt;&gt;&gt;&gt;&gt;&gt; vy-tran</p></li>
 </ul>
 </section>
->>>>>>> vy-tran
 
 </main>
 <!-- /main column -->
