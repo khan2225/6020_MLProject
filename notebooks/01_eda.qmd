@@ -15,6 +15,7 @@ The goal of this exploratory data analysis is to understand the historical reimb
 We will summarize and visualize the data to identify trends, relationships, and potential business rules that influence the reimbursement amount. 
 
 # Basic set up
+
 ```{python}
 # Basic imports for data manipulation and visualization.
 import pandas as pd

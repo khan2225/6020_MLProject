@@ -1,0 +1,92 @@
+---
+title: "Feature Engineering"
+author: "Harriet O'Brien, Vy Tran, Saniyah Khan, Rehinatu Usman"
+format: 
+    html:
+        toc: true
+        number-sections: true
+        theme: cosmo
+---
+
+# Introduction
+
+This notebook focuses on creating the engineered features that will be used in the modeling step.
+Building on the patterns identified in the EDA, the goal here is to generate additional variables 
+that help the model capture cost behavior more effectively.
+
+We will create new features (e.g., cost_per_mile, cost_per_day, receipts_ratio), 
+normalize the data if needed, and document the transformations clearly.
+
+# Basic set up
+```{python}
+import pandas as pd
+import numpy as np
+
+from sklearn.preprocessing import StandardScaler, MinMaxScaler
+
+# Load dataset
+df = pd.read_json("../data/public_cases.json")
+
+# Normalize JSON structure (same as in 01_eda)
+features = pd.json_normalize(df["input"])
+features["reimbursement_amount"] = df["expected_output"]
+
+features.head()
+```
+# Create new features
+ 1. cost_per_mile
+```{python} 
+features["cost_per_mile"] = features["reimbursement_amount"] / features["miles_traveled"]
+```
+ 2. cost_per_day
+```{python}
+features["cost_per_day"] = features["reimbursement_amount"] / features["trip_duration_days"]
+```
+ 3.receipts_ratio
+```{python}
+features["receipts_ratio"] = features["total_receipts_amount"] / features["reimbursement_amount"]
+```
+ 4. miles_per_date
+```{python}
+features["miles_per_day"] = features["miles_traveled"] / features["trip_duration_days"]
+```
+```{python}
+features.head()
+```
+I created several derived features to capture spending patterns per unit distance and per trip day. These ratios help quantify how mileage and receipts scale with reimbursements, which should give ML models more structure to learn from.
+
+# Check missing values again
+```{python}
+features.isnull().sum()
+```
+No missing values were introduced during feature calculation.
+
+# Normalize or scale if needed
+```{python}
+scaler = StandardScaler()
+scaled_cols = ["miles_traveled", "total_receipts_amount", "trip_duration_days"]
+
+features_scaled = scaler.fit_transform(features[scaled_cols])
+scaled_df = pd.DataFrame(features_scaled, columns=[col + "_scaled" for col in scaled_cols])
+
+features = pd.concat([features, scaled_df], axis=1)
+
+features.head()
+```
+Scaled mileage, receipts, and duration to help models that are sensitive to feature magnitudes (e.g., linear regression, ridge).
+
+```{python}
+import seaborn as sns
+import matplotlib.pyplot as plt
+
+plt.figure(figsize=(8,6))
+sns.heatmap(features.corr(), annot=False, cmap="coolwarm")
+plt.title("Correlation after Feature Engineering")
+plt.show()
+```
+New features correlate with reimbursement in expected ways, confirming they capture useful patterns.
+```{python}
+features.to_csv("../data/features_processed.csv", index=False)
+```
+Exported cleaned and feature-engineered data for model development in the next notebook.
+
