@@ -1,0 +1,28 @@
+# Virtual environment
+.venv/
+venv/
+env/
+
+# Python cache files
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Jupyter / Quarto generated directories
+.ipynb_checkpoints/
+notebooks/*_files/
+reports/*_files/
+
+# Quarto output cache and temp files
+*_cache/
+*.html~
+*.qmd~
+*.md~
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Backup files
+*~
