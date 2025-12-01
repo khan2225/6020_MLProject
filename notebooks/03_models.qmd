@@ -1,0 +1,109 @@
+## Model development and selection
+
+Exploratory analysis showed that all three input variables (trip duration, miles traveled,
+and total receipts) have reasonably well-behaved distributions with only mild outliers.
+Correlation analysis and pairwise scatter-plots revealed that reimbursement increases
+monotonically with each input, where the `total_receipts_amount` is the single most predictive
+feature (correlation $\rho \approx 0.70$), while `trip_duration_days` and `miles_traveled`
+also provide complementary signal ($\rho \approx 0.51$ and $\rho \approx 0.43$, respectively).
+The relationships appear roughly linear with some curvature and heteroscedasticity. Based on
+these findings, we adopted a modeling strategy that starts with simple error-based linear models
+and then increases flexibility using polynomial features and tree-based ensemble methods. This
+progression allows us to test whether the mostly linear patterns seen in the EDA are sufficient,
+while still capturing potential non-linear interactions and handling mild outliers robustly.
+
+To keep the experiments reproducible, all models were defined via a YAML-specified pipeline
+configuration. Each entry in `pipelines.yaml` describes an `sklearn` pipeline by listing its
+preprocessing and estimator steps (for example, `preprocessing.StandardScaler` followed by
+`linear_model.Ridge` for Ridge regression). Using this mechanism, a collection of
+regression models were trained: ordinary least squares (OLS), several Ridge/Lasso/ElasticNet
+variants, polynomial Ridge models (degrees 2 and 3), single decision trees with varying
+depth, random forests, and multiple `GradientBoostingRegressor` configurations.
+
+Across OLS, Ridge, Lasso, and ElasticNet, the mean absolute error (MAE) remained tightly
+clustered around 166–167 (for example, `ols` MAE = 167.01, `rr_10` MAE = 166.72, `enet` MAE = 165.94),
+with root mean squared error (RMSE) $\approx 207$–$209$ and $R^2 \approx 0.78$. The choice of
+regularization strength had negligible effect, indicating that linear models, even with
+regularization, are unable to capture the underlying structure of the data and behave very
+similarly to each other. Introducing polynomial features with Ridge regression substantially
+improved performance: the degree-2 model (`prr2`) reduced MAE to 103.12 and the degree-3 model
+(`prr3`) further reduced MAE to 96.35, with $R^2$ increasing to 0.896 and 0.910, respectively. This
+confirms that non-linearity and feature interactions play a major role in predicting reimbursement.
+
+Tree-based methods improved results further. Single decision trees with depths between 5 and 50
+(`dt_5`, `dt_10`, `dt_25`, `dt_50`) achieved MAE in the 97–115 range and $R^2$ between 0.878 and 0.897,
+better than all linear baselines but worse than the polynomial models and ensembles. Random Forest models
+(`rf_6`, `rf_12`) yielded substantially lower errors, with MAE = 75.16 and 71.45, RMSE $\approx 112$–$113$,
+and $R^2 \approx 0.935$–0.936, and reduced mean absolute percentage error (MAPE) to about 6.7–6.9%.
+These results suggest that aggregating many shallow trees is an effective way to capture the non-linear,
+monotone relationships identified in the EDA.
+
+The best performance was obtained with Gradient Boosting. Several `GradientBoostingRegressor`
+configurations were evaluated, varying the number of trees, learning rate, tree depth, and subsampling fraction.
+The baseline configuration (`gbr_base`) achieved MAE = 70.11, RMSE = 110.16, and $R^2 = 0.939$. A slower-learning variant
+(`gbr_slow`) and a stochastic version with subsampling (`gbr_stochastic`) produced similar but slightly worse
+errors. The strongest model was a shallow configuration (`gbr_shallow`) with $n_\text{estimators} = 600$,
+`learning_rate = 0.03`, `max_depth = 2`, and `subsample = 1.0`, which achieved the lowest MAE (68.45), lowest
+RMSE (106.76), highest $R^2$ (0.943), and lowest MAPE (6.35%) among all candidates, while also reducing the 90th
+percentile absolute error to \$135.23. Overall, tree ensembles more than halved the MAE compared to any linear
+model and yielded consistently smaller high-percentile errors. Based on this dominance across all error metrics,
+`gbr_shallow` was selected as the final model and retrained it on the full dataset for deployment in the prediction service.
+
+### XGBoost experiments
+
+To complement the scikit-learn tree ensembles, we also evaluated XGBoost using
+the `XGBRegressor` implementation from the `xgboost` library. We first trained
+a manually specified “default” model, and then performed hyperparameter tuning
+using `GridSearchCV` with MAE as the objective.
+
+The default configuration already performed competitively with the Random Forest
+baseline, but did not surpass the best Gradient Boosting model. After tuning, the
+XGBoost model achieved performance comparable to our strongest scikit-learn
+Gradient Boosting configuration.
+
+The table below summarizes the XGBoost results on the held-out test set.
+
+```{python}
+import pandas as pd
+
+xgb_metrics = pd.DataFrame([
+    ("xgb_default", 77.399, 114.586, 59.746, 0.934, 143.886, 939.891, 7.31),
+    ("xgb_tuned",   68.785, 105.153, 57.894, 0.944, 134.836, 966.782, 6.36),
+], columns=["model", "MAE", "RMSE", "MedAE", "R2", "P90", "MaxE", "MAPE"])
+
+xgb_metrics
+
+Grid search was run over a small hyperparameter grid:
+
+- `n_estimators ∈ {300, 600}`
+- `learning_rate ∈ {0.03, 0.05}`
+- `max_depth ∈ {3, 4}`
+- `subsample ∈ {0.8, 1.0}`
+- `colsample_bytree ∈ {0.8, 1.0}`
+
+`GridSearchCV` with 5-fold cross-validation (160 fits in total) selected:
+
+- `n_estimators = 300`
+- `learning_rate = 0.03`
+- `max_depth = 3`
+- `subsample = 0.8`
+- `colsample_bytree = 1.0`
+
+with a best cross-validated MAE of approximately 81.80. When evaluated on the
+held-out test set, this tuned XGBoost model (`xgb_tuned`) achieved MAE = 68.79,
+RMSE = 105.15, $R^2 = 0.944$, and MAPE = 6.36%. These metrics are very close to
+those of the best scikit-learn Gradient Boosting model (`gbr_shallow`), which
+has MAE = 68.45, RMSE = 106.76, and $R^2 = 0.943$. Based on this comparison, we
+concluded that both boosted tree implementations capture essentially the same
+structure in the data; we retained `gbr_shallow` as the primary final model for
+consistency with the rest of the scikit-learn pipeline, while also saving the
+tuned XGBoost model to `models/final_model_xgb.pkl` for reference.
+
+## SHAP-based model interpretation
+
+To interpret the final Gradient Boosting model beyond global metrics, we used
+SHAP (SHapley Additive exPlanations), a game-theoretic approach that attributes
+each prediction to individual input features. For tree-based models, SHAP's
+`TreeExplainer` efficiently computes Shapley values that quantify how much each
+feature pushes the prediction above or below a baseline (the mean prediction).
+
