@@ -1,0 +1,108 @@
+ols:
+  preprocessing.StandardScaler:
+  linear_model.LinearRegression:
+
+rr_1:
+  preprocessing.StandardScaler:
+  linear_model.Ridge:
+    alpha: 1.0
+
+rr_10:
+  preprocessing.StandardScaler:
+  linear_model.Ridge:
+    alpha: 10.0
+
+rr_0.1:
+  preprocessing.StandardScaler:
+  linear_model.Ridge:
+    alpha: 0.1
+
+prr2:
+  preprocessing.PolynomialFeatures:
+    degree: 2
+    include_bias: false
+  preprocessing.StandardScaler:
+  linear_model.Ridge:
+    alpha: 1.0
+
+prr3:
+  preprocessing.PolynomialFeatures:
+    degree: 3
+    include_bias: false
+  preprocessing.StandardScaler:
+  linear_model.Ridge:
+    alpha: 1.0
+
+rf_6:
+  ensemble.RandomForestRegressor:
+    n_estimators: 300
+    max_depth: 6
+    random_state: 42
+
+rf_12:
+  ensemble.RandomForestRegressor:
+    n_estimators: 300
+    max_depth: 12
+    random_state: 42
+
+lasso:
+  preprocessing.StandardScaler:
+  linear_model.Lasso:
+    alpha: 0.1
+
+enet:
+  preprocessing.StandardScaler:
+  linear_model.ElasticNet:
+    alpha: 0.1
+    l1_ratio: 0.5
+
+gbr_base:
+  ensemble.GradientBoostingRegressor:
+    n_estimators: 300
+    learning_rate: 0.05
+    max_depth: 3
+    random_state: 42
+
+gbr_slow:
+  ensemble.GradientBoostingRegressor:
+    n_estimators: 800
+    learning_rate: 0.02
+    max_depth: 3
+    subsample: 1.0
+    random_state: 42
+
+gbr_shallow:
+  ensemble.GradientBoostingRegressor:
+    n_estimators: 600
+    learning_rate: 0.03
+    max_depth: 2
+    subsample: 1.0
+    random_state: 42
+
+gbr_stochastic:
+  ensemble.GradientBoostingRegressor:
+    n_estimators: 600
+    learning_rate: 0.03
+    max_depth: 3
+    subsample: 0.8
+    random_state: 42
+
+dt_5:
+  tree.DecisionTreeRegressor:
+    max_depth: 5
+    random_state: 42
+
+dt_10:
+  tree.DecisionTreeRegressor:
+    max_depth: 10
+    random_state: 42
+
+dt_25:
+  tree.DecisionTreeRegressor:
+    max_depth: 25
+    random_state: 42
+
+dt_50:
+  tree.DecisionTreeRegressor:
+    max_depth: 50
+    random_state: 42
