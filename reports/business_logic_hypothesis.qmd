@@ -1,0 +1,496 @@
+---
+title: "Business Logic Hypothesis (Qualitative and Quantitative Synthesis)"
+author: "Harriet O'Brien, Vy Tran, Saniyah Khan, Rehinatu Usman"
+format: 
+    html:
+        toc: true
+        number-sections: true
+        theme: cosmo
+---
+
+# Purpose:
+ The purpose of this Business Logic Hypothesis is to explain the possible rules and patterns behind ACME Corporation's legacy reimbursement system. While the system's internal code is unavailable, we can infer its behavior by combining three different sources of evidence: the Product Requirements Document (PRD), the employee interview transcripts, and the results of the Exploratory Data Analysis (EDA). 
+
+The **PRD** provides the high-level business context, including the system's age, the absence of documentation, and the requirement to recreate its behavior as closely as possible, even if that behavior is unusual or outdated. The interviews offer qualitative insight into how long-time users perceive the system, highlighting recurring themes such as inconsistent reimbursements, possible thresholds, season variation, penalties for certain spending patterns and non-linear mileage calculations. These observations suggest that the system’s logic is complex, layered, and influenced by multiple interacting factors. 
+
+The **EDA** adds numerical evidence from these interviews by showing the actual statistical structure of the 1,000 historical cases. Correlation patterns, distribution shapes, and outlier behaviors help identify which variables appear to influence the reimbursement the most (e.g., receipts, trip duration, and mileage) and whether the relationships appear linear, non-linear, or threshold-based. 
+
+By integrating these three perspectives, this hypothesis proposes a set of plausible assumptions about how the system might be making its decisions. These ideas are not representing the system’s exact rules, but rather an interpretation of the patterns observed in both the data and employee experiences. The goal is to produce a structured, testable set of assumptions that can guide feature engineering and model development in the next stages of the project.
+
+
+# Insights from the Product Required Document (PRD)
+
+The PRD provides essential context about how legacy reimbursement engine operates. It describes the system as a 60-year-old black box with no source code or documentation, and partially broken, however, ACME still relies on it. This means that the inputs and outputs are observable but the internal calculation logic is unavaliable. 
+
+These are some of the analytical observations made:
+
+1. **Long-Term Accumulation of Hidden Rules:**
+
+The PRD explains that the system has been modified repeatedly over many decades without proper documentation. In software engineering terms, this often produces systems that contain *implicit rules, outdated conditions, and one-off adjustments* that continue to affect outcomes. These rules remain active even if no one fully understands their purpose. 
+
+2. **Legacy Behavior Influenced by Past Policies:**
+
+As the original code cannot be accessed, it is likely that older business policies, temporary fixes, and historical adjustments still affect the calculations. Analytically, the output function may behave as a **stack of older and newer rules,** some which overlap or conflict. 
+
+3. **Evidence of Irregular Patterns:**
+
+The inconsistent reimbursements or sudden changes for specific trip lengths, suggests that the system uses **conditional logic, thresholds. or nonlinear decision rules.** These are the typical traits of older enterprise systems that were expanded over time without redesign. 
+
+4. **Reproduce Behavior Exactly:** 
+
+The PRD stresses that the goal is not to "improve" the logic but to replicate the behavior exactly, even is some outputs are the results of outdated or flawed rules, In machine-learning terms, this requires approximating a function that may include noise, discontinuities, and non-intuitive interactions among variables.
+
+Overall, the PRD highlights the legacy engine as a multi-factor decision system shaped by layers of past modifications. For our analysis, this means we must treat the reimbursement patterns as the product of complex interactions, not simple linear rules, and we must identify these patterns through data and interviews rather than documentation. 
+
+
+# Insights from the Interviews
+
+The interview transcripts provide qualitative evidence about how employees experience the legacy reimbursement system. Although the participants do not know the exact calculation rules, their observations point to consistent patterns in the system's behavior. In software-engineering terms, many of these comments suggest the presence of conditional branches, hidden thresholds, nonlinear adjustments, and rule interactions that have accumulated over decades of system modifications. 
+
+Several themes appear repeatedly across the interviews:
+
+1. **Mileage Does Not Increase Linearly**
+
+Employees describe the mileage portion as "tiered", "curved", or "dropping off" after the first segment of miles.
+- Lisa noted that the first ~100 miles are reimbursed at a high rate. but the rate decreases afterward in an irregular way. 
+- Marcus and Dave both described cases where a longer trip earned *less* per mile than a shorter one. 
+
+These comments indicate that the system likely uses **piecewise mileage rules**, a **curved function**, or a **tiered schedule** rather than a simple "rate x miles" formula. 
+
+2. **Reciepts Prefer a Medium-Range Total**
+
+Many employees described better reimbursements for **medium-range receipt totals** and worse reimbursements at both the low and high ends. 
+
+- Smaller total receipts sometimes perform worse than submitting none.
+- Higher total receipts over ~800-100 appear to have diminishing returns. 
+
+This suggests the presence of a **preferred receipts range**, with **penalties** for low amounts and **reduced marginal benefit** for high amounts. 
+
+3. **Trip Duration May Trigger Specific Bonuses**
+
+Multiple interviews mentioned a consistent bonus for **5-day trips**, while 4-6 day trips behaved normally. 
+
+- Lisa described this as predictable pattern. 
+- Jennifer mentioned increased fairness complaints around slightly longer trips (7+ days). 
+
+This implies that the system may include **special-case duration bonuses** or **discrete thresholds** based on trip length.
+
+4. **Efficiency (Miles per Day) Appears to Influence Reimbursement**
+
+Kevin reported that the best reimbursements occur arounf **180-220 miles per day**, with drops on either side. 
+
+- Too little mileage per day appears "penalized".
+- Too much mileage per day also reduces reimbursement. 
+
+This patterns suggessts the system may evaluate **mileage relative to duration**, rewarding "efficient" travel through a **ratio-based rule**. 
+
+5. **Timing and Submission Patterns May Introduce Variation**
+
+Participants mentioned possible effects tied to:
+- end of quarter,
+- day of the week, 
+- or more patterns showing specific months or seasons. 
+
+Although thse patterns may not appear directly in the dataset, they imply the presence of **data-based modifiers** or **small random adjustments**. 
+
+6. **Rounding Behavior Indicates a Quirk or Bug**
+
+Employees mentioned that receipts ending in **.49** or **.99** sometimes round "twice" or produce slightly inflated reimbursements. 
+
+This is consistent with the behavior of older financial systems, where certain cent values trigger unusual rounding paths. 
+
+
+---
+
+### **Interpretation**
+
+With all this information, the interviews suggest that the legacy reimbursement engine is not driven by one simple formula but instead by **multiple overlapping rules**, including:
+
+- thresholds
+- bonuses
+- diminshing returns
+- nonlinear mileage adjustments
+- rounding anomalies
+
+These patterns align with how aging systems evolve when they are extended for decades without refactoring, producing behavior that feels inconsistent to users but follows hidden internal conditions. 
+
+
+# What the Data Suggests (from EDA)
+
+The Exploratory Data Analysis provides the first quantitative view of the legacy system behaves. Even though we cannot access the original reimbursement formula, the patterns in the data allows us to identify the variables that appear to influence the final output most strongly. 
+
+1. **Strong Influence of Receipt Totals**
+
+The strongest relationship in the dataset is between **total_receipts_amount** and **reimbursement_amount**. 
+
+The correlation is high, and the pairplots show a clear upward trend. This suggests that receipts form a major part of the reimbursement calculation, either through:
+
+- direct proportional rule, 
+- a capped/adjusted relationship, or 
+- a decreased-return structure (where higher receipts contribute less per dollar). 
+
+This aligns with interview comments noting that mid-range receipts perform well, but very high or very low receipts behave unpredictably. 
+
+2. **Moderate Influence of Mileage and Trip Duration**
+
+Miles traveled and trip duration show **moderate** but consistent positive correlations with reimbursement. The relationships are not as stong as receipts, which suggests they contribute to the output but may follow rules such as:
+
+-  mileage tiers (a higher rate for early miles, lower for additional miles), 
+- daily allowances, 
+- or bonus/penalty adjustments depending on distance or duration ranges.
+
+These moderate effects also reflect the interview mentions of having a preference for middle/medium receipts for certain trip lenghts. 
+
+3. **Right-Skewed Distributions and Outliers**
+
+Across miles traveled, receipts, and reimbursements, the distributions are right-skewed. Most trips are:
+
+- short (3-7 days)
+- moderately priced
+- with typical reimbursements amounts between 1,200 and 1,800. 
+
+A small number of cases involve long trips or high totaled receipts. These cases behave consistently within the overall patterns, indicating that they are **not data errors,** but rather high-cost travel events that the system still processes under its internal rules. 
+
+4. **No Evidence of Strong Nonlinear Clusters, but Variance Increases at Higher Values**
+
+The pairplots show smooth increasing relationships rather than distinct clusters. However, the spread widens at higher values. This implies:
+
+- diminishing returns for additional miles or receipts, 
+- layered conditional rules that create non-uniform patterns at the upper end. 
+
+This is consistnent with the legacy system incorporating rule layers or thresholds, common in old enterprise systems that evolved thorugh incremental modifications. 
+
+---
+### **Interpretation**
+
+All together, the EDA suggests that the legacy system's logic may combine: 
+
+1. A per-day base amount tied to trip duration
+
+2. A mileage component that increases reimbursement but not at a constant rate.
+
+3. A receipts component with strong initial influence but reduced impact at high totals. 
+
+These patterns align well with the interview findings, which describe nonlinear mileage treatment, medium-range receipts performing best, and bonuses at specific trip lengths. 
+
+
+# Combined Interpretation: Proposed Business Rules 
+
+Putting together the findings from the PRD, the interview insights, and the EDA results, we can begin to understand how the legacy reimbursement engine may be operating. Although the exact internal logic is unknown, several patterns consistently appear across all three sources of evidence. These patterns suggest that the system likely applies a set of layered, conditional rules rather than a single formula. Below is a combined interpretation of the rules that may be governing the system's behavior. 
+
+### **Base Amount Tied to Trip Duration**
+
+The EDA shows a moderate positive relationship between trip_duration_days and reimbursement_amount. Interviews also repeatedly mention that certain trip lengths seem to trigger better reimbursements. 
+
+**Hypothesized Rule:**
+
+- The system applies a daily base allowance (e.g., a fixed per-day amount).
+
+- A special case adjustment exists around **5 Days**, where reimbursements tend to be unusually high. 
+
+- Trips slightly longer (e.g., 7+ days) may lose this benefit, which matches fairness concerns expressed by employees. 
+
+**Why is this plausible:**
+
+- Older systems often contain duration-based lookup tables or discrete bonuses. 
+
+- Both EDA trends and interview descriptions support a duration rule with at least one threshold. 
+
+
+
+### **Mileage Component with Tiered or Reduced Rates**
+
+The correlation between miles_traveled and reimbursement is moderate, but the interviews consistently describe strange mileage behavior. 
+
+**Hypothesized Rule:**
+
+- Early miles are reimbursed at a higher rate (e.g., first ~100 miles). 
+
+- After a threshold, miles contribute less than expected.
+
+- The marginal rate may decrease in steps or follow a curve (e.g., a concave-down pattern). 
+
+**Why this is plausible:**
+
+- The EDA shows increasing reimbursement with mileage but with widening variance at higher ranges. 
+
+- Users repeatedly describe situations where longer trips yield ***lower*** per mile payments than shorter ones. 
+
+This suggests a **nonlinear or tiered** mileage structure. 
+
+
+
+### **Receipts Component with a Middle "Optimal" Range**
+
+Receipts show the strongest correlation in the EDA, but interviews describe non-linear behavior:
+
+- Lower receipts sometimes worsen reimbursement. 
+
+- Medium receipts (e.g., ~$600 - $800) produce strong outcomes. 
+
+- Very high receipts show diminished benefit. 
+
+**Hypothesized Rule:**
+
+- The system rewards receipts that fall within a specific "acceptable" range. 
+
+- Receipts below a low threshold may trigger a penalty. 
+
+- Receipts above a high threshold may contribute less to the total (a diminishing return or soft cap). 
+
+**Why this is plausible:**
+
+- EDA confirms a strong but non-linear receipts-to-reimbursement trend. 
+
+-  Multiple employees describe rising receipts not always producing rising reimbursement. 
+
+
+
+### **"Efficiency" Rule Based on Miles per Day**
+
+Interview data (especially from Kevin) repeatedly highlights the effect of ***miles traveled per day***. The EDA does not directly compute this ratio, but the underlying relationships support the idea. 
+
+**Hypothesized Rule:**
+ 
+ - The system evaluates mileage relative to trip duration. 
+
+ - An efficiency window (approximately 180-220 miles/day) yields the best reimbursements. 
+
+ - Too little mileage/day may signal "low productivity" to which it concludes to reduced reimbursement. 
+
+ - Too much mileage/day may signal unrealistic or "non-business" travel to which it conlcudes to reduced reimbursement. 
+
+ **Why this is plausible:**
+
+  - Efficiency metrics are common in older travel systems. 
+
+  - Interview reports show strong consistency about mileage/day patterns. 
+  
+### Minor Time-Based or Random Adjustments
+
+  Although the dataset does not include timestamps, employees describe patterns relating to:
+
+  - days of the week, 
+  - end-of-quarter periods, 
+  - seasonal behavior,
+  - and even perceived "randomness."
+  
+  **Hypothesized Rule:**
+
+  - A small time based coefficient (e.g., monthly or quarterly adjustment) may modify totals. 
+
+  - Alternatively, the system includes a small random factor to avoid predictable gaming. 
+
+  **Why this is plausible:**
+
+  - Legacy Systems sometimes use date-based adjustments for budgeting cycles. 
+
+  - Older ramdom rounding or floating-point behavior can create irregular outputs. 
+
+  EDA cannot confirm these behaviors, but nothing contradicts them. 
+
+### **Rounding Quirks Linked to Specific Cents Values**
+
+  Several employees mention reimbursements behaving strangely when receipts end in **.49** or **.99**. 
+
+  **Hypothesized Rule:** 
+
+  - The system may use a rounding sequence that processes cents twice.
+
+  - Certain ending values may trigger upward rounding or "favorable" rounding paths. 
+
+  **Why this is plausible:**
+
+  - Older COBOL-like systems frequently contain rounding logic that behaves inconsistently across cent patterns. 
+
+  - Interview accounts strong support this. 
+
+  The EDA does not include cent-level analysis, but the behavior is typical of legacy financial systems. 
+
+### **Combined Rule Structure: A Layered System**
+
+  Combining all the evidence, thus suggesting the legacy reimbursement engine most likely combines:
+
+  1. A base per-day amount 
+  2. A tiered or curved mileage calculation 
+  3. A receipts-based component with mid-range bonuses 
+  4. A ratio-based efficiency multiplier (miles/day)
+  5. Small date-based or other small random variations
+  6. One or more unexpected behaviors with rounding
+
+  This aligns with:
+
+  - PRD descriptions of a system modified repeatedly over decades
+
+  - User interviews that highlight inconsistent but patterned behavior 
+
+  - EDA findings showing increasing but non-linear trends. 
+
+  The most likely explanation is that multiple conditional rules interact with each other, creating outputs that appear inconsistent but actually fixed-rule patterns within different ranges. 
+
+
+# Feature Engineering Strategy 
+
+The purpose of feature engineering in this project is to translate the themes identified in the PRD, interviews, and EDA into measurable variables that the model can use to approximate the legacy system's behavior. Because the original system likely uses layered rules, thresholds, and non-linear adjustments, the features must capture both simple relationships and more complex patterns. 
+
+The features created in the feature engineering notebook reflect this goal. Below is a structured explanation of the strategy behind them, why they are appropriate, and how they connect to the business logic hypothesis. 
+
+### Core Features (Direct Inputs)
+
+These are the variables directly provided in the dataset:
+
+- **trip_duration_days**
+- **miles_traveled**
+- **total_receipts_amount**
+- **reimbursement_amount** (target)
+
+Since the legacy system bases all decisions on these variables, they must be included without modification. They serve as the foundation for all additional engineered features. 
+
+The EDA shows that all three variables influence reimbursement (receipts strongest, mileage and duration moderately). Including them directly ensures the model retains the original information that drives payout decisions. 
+
+### Ratio-Based Features (Capture Efficiency Patterns)
+
+Several derived features were created to reflect patterns identified in the interviews and EDA:
+
+- **miles_per_day** 
+- **cost_per_day**
+- **cost_per_mile**
+- **receipts_ratio (receipts divided by reimbursement)**
+
+These ratio features help the model detect patterns described in interviews, such as: 
+
+- "efficient mileage" windows 
+- diminishing returns
+- over-spending or under-spending effects 
+
+Interviews repeatedly mention that reimbursement behave differently depending on balance (e.g., miles per day, spending relative to trip duration). These patterns cannot be detected from variables alone. 
+
+### Scaled Features (Standardized for Modeling)
+
+Since some models are sensitive to the scale of numerical variables, the following were standardized (z-scaling):
+
+- trip_duration_days 
+- miles_traveled
+- total_receipts_amount 
+
+These scaling step does not modify the meaning of the features, it helps models handle the differences in magnitude, especially between miles(hundreds) and receipts (thousands). 
+
+
+### Features Supporting Nonlinear Patterns 
+
+The interviews and EDA suggest several behaviors:
+
+- mileage decreases in value after a certain point 
+- receipts have a good middle range 
+- long but expensive trips can be penalized 
+
+The engineered features indirectly support these patterns:
+
+- **cost_per_mile** helps capture changes in mileage value
+- **cost_per_day** helps detect duration based bonuses or penalties
+- **receipts_ratio** helps capture diminishing returns on spending 
+
+
+Even though explicit thresholds were not added, models like trees and regression can find thresholds and breakpoints automatically if the engineered features are done correctly. 
+
+### Additional Features That Could Be Tested Later On 
+
+These features were identified as potentially useful based on interview claims but were not required for the initial modeling notebook. They are documented here to show that there are additional patterns that can be implemented:
+
+- **is_five_day_trip** (trip_duration_days == 5)
+- **receipt_low/receipt_mid/receipt_high**
+- **miles_per_day** to indicate reimbursement value
+- **mileage_above_100** (miles traveled > 100)
+
+These options are avaliable if the model shows gaps in performance in specific ranges. 
+
+### Alignment With Current Modeling Work 
+
+The feature engineering notebook already includes:
+
+- miles_per_day
+- cost_per_mile
+- receipts_ratio
+- cost_per_day 
+- scaled versions of numerical inputs 
+
+These features directly match the patterns identified in the interviews and EDA, specifically:
+
+- decreasing incremental value of additional receipts,
+- trip duration influencing reimbursements in a patterned way, 
+- non-linear relationships between miles and reimbursement. 
+
+Because these engineered features support the conditions suggested by the Business Logic Hypothesis, no additional changes are needed.
+
+### Overall Summary 
+
+Overall, the engineered features aim to:
+
+- Represent meaningful travel behaviors (distance, spending, duration)
+
+- Capture efficiency and spending patterns through ratios
+
+- Support models in identifying nonlinear patterns seen in data 
+
+- Align with employee descriptions of how the system behaves 
+
+- Maintain compatability of the features engineering implemented and modeling pipeline
+
+This feature set provides a balanced starting point for both interpretability and predictable performance while remaining realistic with the limited inputs of the legacy system. 
+
+
+# Assumptions, Limitations, and Risks 
+
+The Business Logic Hypothesis is built from observable patterns in the data, qualitative insights from employee interviews, and context provided by the PRD. Because the original reimbursement engine is inaccessible, there are many assumptions and constraints in this analysis. 
+
+### Assumptions 
+
+1. **Public cases reflect the same logic as the private
+set** 
+
+We assume the historical cases provided in the dataset are consistent with the rules still used by the ACME's legacy system. 
+
+2. **Interview descriptions accurately represent repeated system behaviors**
+
+The recurring statements across employees are treated as indications of underlying rules.
+
+3. **The legacy system's behavior is stable**
+
+We assume the reimbursement logic has not changed significantly in recent years despite system age and undocumented updates. 
+
+### Limitations 
+
+1. **No access to internal logic or user-specific history**
+
+Features such as User ID, timestamps, or submission context is not present which limits our ability to test the claims about timing effects or user history. 
+
+2. **Some interview claims cannot be directly confirmed by the dataset** 
+
+Examples include day of week differences, quarterly adjustments, or rounding anomalies based on specific cent values. 
+
+3. **Potential for multiple overlapping rules producing similar patterns** 
+
+EDA findings may reflect combined effects of several conditions, making the exact rule reconstruction difficult. 
+
+
+### Risks 
+
+1. **Overfitting to unexpected behaviors in the public dataset** 
+
+If some patterns are a coincidence or dataset-specific, models may capture noise that doesn't generalize to the private evaluation set. 
+
+2. **Misinterpreting nonlinear behavior as true rules** 
+
+Without direct access to the system, there is a risk of attributing significance to patterns created by historical randomness or incomplete records. 
+
+3. **Missing hidden interactions** 
+
+The system may use conditions not represented in the avaliable data such as employee rule, destination type, or approval, which can't be incorporated. 
+
+### Overall 
+
+These assumptions and constraints reflect the core challenge described in the PRD: **reconstructing the behavior of a complex legacy system using only observable inputs and outputs.** The feature engineering and modeling strategy attempt to balance accuracy, interpretability, and limitations of the dataset. 
+
+
+
+

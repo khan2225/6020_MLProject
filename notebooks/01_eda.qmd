@@ -135,4 +135,4 @@ Overall, this exploratory analysis suggests that:
 - Outliers in distance, receipts, and reimbursement appear to reflect legitimate high-cost or long-distance trips rather than data quality problems. 
 
 - These patterns provide a clear basis for the next step: building and evaluating predictive models that estimate reimbursement amounts from trip characteristics.
->>>>>>> vy-tran
+
