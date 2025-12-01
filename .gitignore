@@ -20,9 +20,10 @@ reports/*_files/
 *.qmd~
 *.md~
 
-# OS files
+# macOS metadata files
+._*
 .DS_Store
-Thumbs.db
+
 
 # Backup files
 *~
