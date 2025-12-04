@@ -1,0 +1,197 @@
+---
+title: "Model Interpretability"
+author: "Harriet O'Brien, Vy Tran, Saniyah Khan, Rehinatu Usman"
+format: 
+    html:
+        toc: true
+        number-sections: true
+        theme: cosmo
+---
+
+# Introduction
+
+The goal of this section is to understand how the trained models make predictions and to check whether the model behavior aligns with the patterns observed during EDA.
+Interpretability also helps confirm that the model is using features in a reasonable way and that its errors do not follow any strong pattern.
+This section includes:
+- Feature importance
+- Partial dependence plots
+- Actual vs. predicted
+- Residual analysis
+
+These steps provide a clear overview of how reliable and transparent the final model is.
+
+# 1. Set up
+```{r}
+library(reticulate)
+use_python("C:/Users/tuong/anaconda3/envs/mlclean/python.exe", required = TRUE)
+py_config()
+```
+```{python}
+import pandas as pd
+import numpy as np
+
+import matplotlib.pyplot as plt
+import seaborn as sns
+
+from sklearn.model_selection import train_test_split
+from sklearn.ensemble import RandomForestRegressor, GradientBoostingRegressor
+from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
+from sklearn.inspection import PartialDependenceDisplay
+```
+
+# 2. Load processed features and recreate train–test split
+Here we reload the processed dataset and recreate the exact same train/test split as the previous modeling file.
+This ensures the interpretability results match the final training conditions.
+```{python}
+# Load the final processed feature matrix
+
+features = pd.read_csv("../data/features_processed.csv")
+
+# Identify the correct target column (scaled version)
+
+target_col = "trip_duration_days_scaled"
+
+# Recreate X and y
+
+y = features[target_col]
+X = features.drop(columns=[target_col])
+
+# Recreate the same train-test split used in the model file
+
+X_train, X_test, y_train, y_test = train_test_split(
+X, y, test_size=0.2, random_state=42
+)
+
+# Re-train the two models for interpretability
+
+rf = RandomForestRegressor(random_state=42)
+rf.fit(X_train, y_train)
+
+gb = GradientBoostingRegressor(random_state=42)
+gb.fit(X_train, y_train)
+
+X.head()
+
+```
+Random Forest provides feature importance scores based on how much each variable reduces prediction error across the trees.
+This gives a simple but useful view of which features matter the most.
+
+# 3. Feature Importance
+Feature importance tells us which input variables influenced predictions the most.
+
+## 3.1 Random Forest
+```{python}
+rf_importance = rf.feature_importances_
+importance_df = pd.DataFrame({
+"feature": X_train.columns,
+"importance": rf_importance
+}).sort_values(by="importance", ascending=False)
+
+importance_df
+
+```
+```{python}
+plt.figure(figsize=(8,5))
+sns.barplot(data=importance_df, x="importance", y="feature")
+plt.title("Random Forest Feature Importance")
+plt.tight_layout()
+plt.show()
+
+```
+Higher values mean the feature had a stronger effect on predictions.
+We compare this ordering with what we saw during EDA to see if the model uses features logically.
+
+##3.2 Gradient Boosting Feature Importance
+```{python}
+gb_importance = gb.feature_importances_
+gb_df = pd.DataFrame({
+"feature": X_train.columns,
+"importance": gb_importance
+}).sort_values(by="importance", ascending=False)
+
+gb_df
+
+```
+```{python}
+plt.figure(figsize=(8,5))
+sns.barplot(data=gb_df, x="importance", y="feature")
+plt.title("Gradient Boosting Feature Importance")
+plt.tight_layout()
+plt.show()
+
+```
+Gradient Boosting usually focuses on fewer strong predictors.
+If both models highlight similar features,that increases confidence.
+
+# 4. Partial Dependence Plots (PDPs)
+PDPs help show how the prediction changes when we vary one feature while keeping other constant.
+```{python}
+features_to_plot = ["total_receipts_amount_scaled",
+"miles_traveled_scaled",
+"trip_duration_days"]
+
+fig, ax = plt.subplots(figsize=(10,6))
+PartialDependenceDisplay.from_estimator(
+gb, X_train, features_to_plot, ax=ax
+)
+plt.tight_layout()
+plt.show()
+
+```
+The PDPs confirm the feature importance results:
+
+When trip duration increases, predicted reimbursement increases steadily.
+The other features remain mostly flat, meaning they do not meaningfully change model output.
+This suggests our engineered cost features did not add additional predictive power.
+
+# 5. Actual vs Predicted 
+This tells us how close model predictions are to the real test values.
+```{python}
+gb_preds = gb.predict(X_test)
+
+plt.figure(figsize=(6,6))
+plt.scatter(y_test, gb_preds, alpha=0.5)
+plt.xlabel("Actual")
+plt.ylabel("Predicted")
+plt.title("Gradient Boosting: Actual vs Predicted")
+plt.grid(True)
+plt.tight_layout()
+plt.show()
+
+```
+The points roughly follow a diagonal line, meaning predictions are fairly close to real values.
+Some spread exists, especially for longer trips, which indicates the model performs reasonably well but is not perfect.
+
+# 6.Residual Distribution + Residuals vs Predictions
+
+Residuals help us check whether there is any bias or cosistent error pattern.
+```{python}
+residuals = y_test - gb_preds
+
+plt.figure(figsize=(6,4))
+sns.histplot(residuals, kde=True)
+plt.title("Residual Distribution")
+plt.tight_layout()
+plt.show()
+
+```
+```{python}
+plt.figure(figsize=(6,4))
+plt.scatter(gb_preds, residuals, alpha=0.5)
+plt.axhline(0, color="red", linestyle="--")
+plt.xlabel("Predicted")
+plt.ylabel("Residual")
+plt.title("Residuals vs Predictions")
+plt.tight_layout()
+plt.show()
+
+```
+The residuals appear roughly centered around zero, with no strong bias pattern.
+A slightly uneven spread suggests uncertainty increases for longer trip durations, but overall, there are no systematic errors, meaning the model is making fair and consistent predictions.
+
+# Sumary
+
+Overall, the interpretability results are consistent with what we observed during EDA. The model mainly relies on trip duration, which makes sense given the structure of the reimbursement data. While uncertainty slightly increases for longer trips, there is no clear bias or systematic pattern in the errors.
+These findings suggest that the model is behaving logically, using features in a reasonable way, and producing predictions that align with domain expectations.
+
+
