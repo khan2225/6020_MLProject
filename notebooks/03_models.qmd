@@ -160,6 +160,14 @@ plt.grid(True)
 plt.show()
 ```
 
-All three models achieve near-perfect performance, with MAE and RMSE close to zero and R^2 equal to 1.0.
-This outcome is expected because the engineered target variable is strongly determined by the created features and behaves smoothly after scaling. As a result, even simple models like Linear Regression can fit the data almost perfectly.
-These results suggest that the engineered features fully explain the target variation, and the dataset is highly predictable. More complex models (RF, GBM) do not offer meaningful improvements, confirming that the underlying relationship is already very strong and mostly linear.
+# Model Evaluation Summary
+
+Overall, all three models (Linear Regression, Random Forest, Gradient Boosting) reach almost perfect performance on the test set, with MAE and RMSE very close to zero and R² equal to 1.0. This happens because the engineered target and features already capture the main relationship in a smooth, almost linear way.
+
+Since the more complex tree-based models do not bring a meaningful improvement over Linear Regression, we can treat Linear Regression as our main reference model and use the tree-based models mainly as a robustness check. This choice keeps the solution simple and easy to explain while still giving us very strong predictive performance.
+
+Based on these results, Linear Regression will be selected as the primary final model for deployment, while Random Forest and Gradient Boosting help confirm that the relationship is stable and not model-dependent.
+ 
+
+
+

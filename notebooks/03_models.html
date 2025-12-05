@@ -90,6 +90,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   <li><a href="#gradient-boosting-model" id="toc-gradient-boosting-model" class="nav-link" data-scroll-target="#gradient-boosting-model"><span class="header-section-number">5</span> Gradient Boosting model</a></li>
   <li><a href="#compare-all-models-in-one-table" id="toc-compare-all-models-in-one-table" class="nav-link" data-scroll-target="#compare-all-models-in-one-table"><span class="header-section-number">6</span> Compare all models in one table</a></li>
   <li><a href="#visualization" id="toc-visualization" class="nav-link" data-scroll-target="#visualization"><span class="header-section-number">7</span> Visualization</a></li>
+  <li><a href="#model-evaluation-summary" id="toc-model-evaluation-summary" class="nav-link" data-scroll-target="#model-evaluation-summary"><span class="header-section-number">8</span> Model Evaluation Summary</a></li>
   </ul>
 </nav>
 </div>
@@ -351,7 +352,12 @@ NOTE: Python version was forced by use_python() function</code></pre>
 </div>
 </div>
 </div>
-<p>All three models achieve near-perfect performance, with MAE and RMSE close to zero and R^2 equal to 1.0. This outcome is expected because the engineered target variable is strongly determined by the created features and behaves smoothly after scaling. As a result, even simple models like Linear Regression can fit the data almost perfectly. These results suggest that the engineered features fully explain the target variation, and the dataset is highly predictable. More complex models (RF, GBM) do not offer meaningful improvements, confirming that the underlying relationship is already very strong and mostly linear.</p>
+</section>
+<section id="model-evaluation-summary" class="level1" data-number="8">
+<h1 data-number="8"><span class="header-section-number">8</span> Model Evaluation Summary</h1>
+<p>Overall, all three models (Linear Regression, Random Forest, Gradient Boosting) reach almost perfect performance on the test set, with MAE and RMSE very close to zero and R² equal to 1.0. This happens because the engineered target and features already capture the main relationship in a smooth, almost linear way.</p>
+<p>Since the more complex tree-based models do not bring a meaningful improvement over Linear Regression, we can treat Linear Regression as our main reference model and use the tree-based models mainly as a robustness check. This choice keeps the solution simple and easy to explain while still giving us very strong predictive performance.</p>
+<p>Based on these results, Linear Regression will be selected as the primary final model for deployment, while Random Forest and Gradient Boosting help confirm that the relationship is stable and not model-dependent.</p>
 </section>
 
 </main>
