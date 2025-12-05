@@ -91,6 +91,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   <li><a href="#compare-all-models-in-one-table" id="toc-compare-all-models-in-one-table" class="nav-link" data-scroll-target="#compare-all-models-in-one-table"><span class="header-section-number">6</span> Compare all models in one table</a></li>
   <li><a href="#visualization" id="toc-visualization" class="nav-link" data-scroll-target="#visualization"><span class="header-section-number">7</span> Visualization</a></li>
   <li><a href="#model-evaluation-summary" id="toc-model-evaluation-summary" class="nav-link" data-scroll-target="#model-evaluation-summary"><span class="header-section-number">8</span> Model Evaluation Summary</a></li>
+  <li><a href="#note-on-polynomialinteraction-features" id="toc-note-on-polynomialinteraction-features" class="nav-link" data-scroll-target="#note-on-polynomialinteraction-features"><span class="header-section-number">9</span> Note on polynomial/interaction features</a></li>
   </ul>
 </nav>
 </div>
@@ -358,6 +359,10 @@ NOTE: Python version was forced by use_python() function</code></pre>
 <p>Overall, all three models (Linear Regression, Random Forest, Gradient Boosting) reach almost perfect performance on the test set, with MAE and RMSE very close to zero and R² equal to 1.0. This happens because the engineered target and features already capture the main relationship in a smooth, almost linear way.</p>
 <p>Since the more complex tree-based models do not bring a meaningful improvement over Linear Regression, we can treat Linear Regression as our main reference model and use the tree-based models mainly as a robustness check. This choice keeps the solution simple and easy to explain while still giving us very strong predictive performance.</p>
 <p>Based on these results, Linear Regression will be selected as the primary final model for deployment, while Random Forest and Gradient Boosting help confirm that the relationship is stable and not model-dependent.</p>
+</section>
+<section id="note-on-polynomialinteraction-features" class="level1" data-number="9">
+<h1 data-number="9"><span class="header-section-number">9</span> Note on polynomial/interaction features</h1>
+<p>We briefly considered adding polynomial or interaction terms (for example squared mileage or interactions between miles and receipts). However, after feature engineering and scaling, all three models already achieved R^2 = 1.0 on the test set. This suggests that the existing features capture the relationship very well, so adding extra nonlinear terms would mainly increase complexity without improving performance.</p>
 </section>
 
 </main>

@@ -168,6 +168,23 @@ Since the more complex tree-based models do not bring a meaningful improvement o
 
 Based on these results, Linear Regression will be selected as the primary final model for deployment, while Random Forest and Gradient Boosting help confirm that the relationship is stable and not model-dependent.
  
+# Note on polynomial/interaction features
+
+We briefly considered adding polynomial or interaction terms (for example squared mileage or interactions between miles and receipts). However, after feature engineering and scaling, all three models already achieved R^2 = 1.0 on the test set. This suggests that the existing features capture the relationship very well, so adding extra nonlinear terms would mainly increase complexity without improving performance.
+
+# Export Final Model
+ 
+```{python}
+ import joblib
+
+# choose final model (here Linear Regression because the results are equivalent to RF and GBM)
+final_model = lr  
+
+joblib.dump(final_model, "../models/final_model.pkl")
+
+print("Model saved as final_model.pkl")
+```
+
 
 
 
