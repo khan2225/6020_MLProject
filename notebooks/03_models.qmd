@@ -175,13 +175,10 @@ We briefly considered adding polynomial or interaction terms (for example square
 # Export Final Model
  
 ```{python}
- import joblib
-
+import joblib
 # choose final model (here Linear Regression because the results are equivalent to RF and GBM)
-final_model = lr  
-
+final_model = lr
 joblib.dump(final_model, "../models/final_model.pkl")
-
 print("Model saved as final_model.pkl")
 ```
 

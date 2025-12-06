@@ -119,6 +119,12 @@ Outliers in reimbursement_amount: reimbursement outliers match the receipt and m
 ```{python}
 df.columns
 ```
+```{python}
+plt.figure(figsize=(6,5))
+sns.scatterplot(data=features, x="miles_traveled", y="reimbursement_amount")
+plt.title("Mileage vs Reimbursement Amount")
+plt.show()
+```
 
 # Summary of Findings
 
