@@ -20,7 +20,7 @@ This section includes:
 
 These steps provide a clear overview of how reliable and transparent the final model is.
 
-# 1. Set up
+# Set up
 ```{r}
 library(reticulate)
 use_python("C:/Users/tuong/anaconda3/envs/mlclean/python.exe", required = TRUE)
@@ -39,7 +39,7 @@ from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
 from sklearn.inspection import PartialDependenceDisplay
 ```
 
-# 2. Load processed features and recreate train–test split
+# Load processed features and recreate train–test split
 Here we reload the processed dataset and recreate the exact same train/test split as the previous modeling file.
 This ensures the interpretability results match the final training conditions.
 ```{python}
@@ -76,10 +76,10 @@ X.head()
 Random Forest provides feature importance scores based on how much each variable reduces prediction error across the trees.
 This gives a simple but useful view of which features matter the most.
 
-# 3. Feature Importance
+# Feature Importance
 Feature importance tells us which input variables influenced predictions the most.
 
-## 3.1 Random Forest
+## Random Forest
 ```{python}
 rf_importance = rf.feature_importances_
 importance_df = pd.DataFrame({
@@ -101,7 +101,7 @@ plt.show()
 Higher values mean the feature had a stronger effect on predictions.
 We compare this ordering with what we saw during EDA to see if the model uses features logically.
 
-##3.2 Gradient Boosting Feature Importance
+## Gradient Boosting Feature Importance
 ```{python}
 gb_importance = gb.feature_importances_
 gb_df = pd.DataFrame({
@@ -123,7 +123,7 @@ plt.show()
 Gradient Boosting usually focuses on fewer strong predictors.
 If both models highlight similar features,that increases confidence.
 
-# 4. Partial Dependence Plots (PDPs)
+# Partial Dependence Plots (PDPs)
 PDPs help show how the prediction changes when we vary one feature while keeping other constant.
 ```{python}
 features_to_plot = ["total_receipts_amount_scaled",
@@ -144,7 +144,7 @@ When trip duration increases, predicted reimbursement increases steadily.
 The other features remain mostly flat, meaning they do not meaningfully change model output.
 This suggests our engineered cost features did not add additional predictive power.
 
-# 5. Actual vs Predicted 
+# Actual vs Predicted 
 This tells us how close model predictions are to the real test values.
 ```{python}
 gb_preds = gb.predict(X_test)
@@ -162,7 +162,7 @@ plt.show()
 The points roughly follow a diagonal line, meaning predictions are fairly close to real values.
 Some spread exists, especially for longer trips, which indicates the model performs reasonably well but is not perfect.
 
-# 6.Residual Distribution + Residuals vs Predictions
+# Residual Distribution + Residuals vs Predictions
 
 Residuals help us check whether there is any bias or cosistent error pattern.
 ```{python}
@@ -189,7 +189,7 @@ plt.show()
 The residuals appear roughly centered around zero, with no strong bias pattern.
 A slightly uneven spread suggests uncertainty increases for longer trip durations, but overall, there are no systematic errors, meaning the model is making fair and consistent predictions.
 
-# Sumary
+# Summary
 
 Overall, the interpretability results are consistent with what we observed during EDA. The model mainly relies on trip duration, which makes sense given the structure of the reimbursement data. While uncertainty slightly increases for longer trips, there is no clear bias or systematic pattern in the errors.
 These findings suggest that the model is behaving logically, using features in a reasonable way, and producing predictions that align with domain expectations.

@@ -6,18 +6,18 @@ format:
         toc: true
         number-sections: true
         theme: cosmo
+execute:
+    python:
+        reticulate: false
 ---
 
-#Introduction
+# Introduction
 
-In this section, we build predictive models to estimate the scaled trip duration based on the engineered features created earlier. Our goal is to evaluate multiple regression models, compare their performance, and identify which algorithm provides the most accurate and stable predictions. We include three models-linear Regression, Random Forest, and Gradient Boosting-and use standard metrics such as MAE, RMSE, and R^2 for evaluation.
-We test multiple models to ensure that the strong baseline performance is not accidental and to comfirn whether more flexible models offer any measurable improvement.
+In this section, we build predictive models to estimate the scaled trip duration based on the engineered features created earlier. Our goal is to evaluate multiple regression models, compare their performance, and identify which algorithm provides the most accurate and stable predictions. We include three models: **Linear Regression, Random Forest, and Gradient Boosting**; and use standard metrics such as MAE, RMSE, and R^2 for evaluation.
+We test multiple models to ensure that the strong baseline performance is not accidental and to comfirm whether more flexible models offer any measurable improvement.
 # Setup
-```{r}
-library(reticulate)
-use_python("C:/Users/tuong/anaconda3/envs/mlclean/python.exe", required = TRUE)
-py_config()
-```
+
+
 # Load Data
 ```{python}
 # Basic set up
@@ -56,7 +56,7 @@ X_train, X_test, y_train, y_test = train_test_split(
 # (Executed in terminal to avoid reticulate crash)
 ```
 
-# Baseline model: Linear Regression
+# Baseline Model: Linear Regression
 ```{python}
 import numpy as np
 from sklearn.linear_model import LinearRegression
@@ -82,7 +82,7 @@ print(f"  R²  : {lr_r2:.3f}")
 ```
 Linear Regression provides a simple baseline by modeling a straight-line relationship between features and the target. This helps us understand whether the dataset is linearly predictable before testing more flexible models.
 
-# Random Forest model
+# Random Forest Model
 ```{python}
 from sklearn.ensemble import RandomForestRegressor
 
@@ -108,7 +108,7 @@ print(f"  R²:   {rf_r2:.3f}")
 ```
 Random Forest uses many decision trees and averages their predictions. This helps reduce variance and capture non-linear patterns that linear models may miss.
 
-# Gradient Boosting model
+# Gradient Boosting Model
 ```{python}
 from sklearn.ensemble import GradientBoostingRegressor
 
@@ -135,7 +135,7 @@ print(f"  R²:   {gbr_r2:.3f}")
 ```
 Gradient Boosting trains trees sequentially, where each new tree focuses on correcting the errors of the previous ones. This often leads to strong performance on structured datasets.
 
-# Compare all models in one table
+# Compare All Models In One Table
 ```{python}
 results = pd.DataFrame({
     "Model": ["Linear Regression", "Random Forest", "Gradient Boosting"],
