@@ -1,0 +1,187 @@
+---
+title: "Modeling Reimbursement Amount"
+author: "Harriet O'Brien, Vy Tran, Saniyah Khan, Rehinatu Usman"
+format: 
+    html:
+        toc: true
+        number-sections: true
+        theme: cosmo
+execute:
+    python:
+        reticulate: false
+---
+
+# Introduction
+
+In this section, we build predictive models to estimate the scaled trip duration based on the engineered features created earlier. Our goal is to evaluate multiple regression models, compare their performance, and identify which algorithm provides the most accurate and stable predictions. We include three models: **Linear Regression, Random Forest, and Gradient Boosting**; and use standard metrics such as MAE, RMSE, and R^2 for evaluation.
+We test multiple models to ensure that the strong baseline performance is not accidental and to comfirm whether more flexible models offer any measurable improvement.
+# Setup
+
+
+# Load Data
+```{python}
+# Basic set up
+import pandas as pd
+import numpy as np
+
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
+from sklearn.linear_model import LinearRegression
+from sklearn.ensemble import RandomForestRegressor
+
+# Load processed features 
+features = pd.read_csv("../data/features_processed.csv")
+
+# Quick check to ensure the dataset loaded correctly
+features.head()
+features.shape
+```
+# Train-Test Split
+
+We predict the engineered target variable trip_duration_days_scaled.
+
+```{python}
+# Split the dataset into training and testing sets
+# We predict 'trip_duration_days_scaled' using the engineered features.
+X = features.drop(columns=["trip_duration_days_scaled"])
+y = features["trip_duration_days_scaled"]
+
+X_train, X_test, y_train, y_test = train_test_split(
+    X, y, test_size=0.2, random_state=42
+)
+```
+```{python}
+#| eval: false
+# Linear Regression baseline model
+# (Executed in terminal to avoid reticulate crash)
+```
+
+# Baseline Model: Linear Regression
+```{python}
+import numpy as np
+from sklearn.linear_model import LinearRegression
+from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
+
+# Create and fit the model
+lr = LinearRegression()
+lr.fit(X_train, y_train)
+
+# Make predictions on the test set
+lr_preds = lr.predict(X_test)
+
+# Evaluate model performance
+lr_mae = mean_absolute_error(y_test, lr_preds)
+lr_rmse = np.sqrt(mean_squared_error(y_test, lr_preds))
+lr_r2 = r2_score(y_test, lr_preds)
+
+# Clean formatted output
+print("Linear Regression performance:")
+print(f"  MAE : {lr_mae:.2f}")
+print(f"  RMSE: {lr_rmse:.2f}")
+print(f"  R²  : {lr_r2:.3f}")
+```
+Linear Regression provides a simple baseline by modeling a straight-line relationship between features and the target. This helps us understand whether the dataset is linearly predictable before testing more flexible models.
+
+# Random Forest Model
+```{python}
+from sklearn.ensemble import RandomForestRegressor
+
+# Create and train the model
+rf = RandomForestRegressor(
+    n_estimators=300,
+    random_state=42
+)
+rf.fit(X_train, y_train)
+
+# Predictions
+rf_preds = rf.predict(X_test)
+
+# Evaluation
+rf_mae = mean_absolute_error(y_test, rf_preds)
+rf_rmse = np.sqrt(mean_squared_error(y_test, rf_preds))
+rf_r2 = r2_score(y_test, rf_preds)
+
+print("Random Forest performance:")
+print(f"  MAE:  {rf_mae:.2f}")
+print(f"  RMSE: {rf_rmse:.2f}")
+print(f"  R²:   {rf_r2:.3f}")
+```
+Random Forest uses many decision trees and averages their predictions. This helps reduce variance and capture non-linear patterns that linear models may miss.
+
+# Gradient Boosting Model
+```{python}
+from sklearn.ensemble import GradientBoostingRegressor
+
+gbr = GradientBoostingRegressor(
+    learning_rate=0.05,
+    n_estimators=200,
+    max_depth=3,
+    random_state=42
+)
+
+gbr.fit(X_train, y_train)
+gbr_preds = gbr.predict(X_test)
+
+# Evaluation
+gbr_mae = mean_absolute_error(y_test, gbr_preds)
+gbr_rmse = np.sqrt(mean_squared_error(y_test, gbr_preds))
+gbr_r2 = r2_score(y_test, gbr_preds)
+
+print("Gradient Boosting performance:")
+print(f"  MAE:  {gbr_mae:.2f}")
+print(f"  RMSE: {gbr_rmse:.2f}")
+print(f"  R²:   {gbr_r2:.3f}")
+
+```
+Gradient Boosting trains trees sequentially, where each new tree focuses on correcting the errors of the previous ones. This often leads to strong performance on structured datasets.
+
+# Compare All Models In One Table
+```{python}
+results = pd.DataFrame({
+    "Model": ["Linear Regression", "Random Forest", "Gradient Boosting"],
+    "MAE":   [lr_mae, rf_mae, gbr_mae],
+    "RMSE":  [lr_rmse, rf_rmse, gbr_rmse],
+    "R²":    [lr_r2, rf_r2, gbr_r2]
+})
+
+results
+
+```
+
+# Visualization
+```{python}
+import matplotlib.pyplot as plt
+
+plt.scatter(y_test, rf_preds, alpha=0.6)
+plt.xlabel("Actual")
+plt.ylabel("Predicted")
+plt.title("Random Forest: Actual vs Predicted")
+plt.grid(True)
+plt.show()
+```
+
+# Model Evaluation Summary
+
+Overall, all three models (Linear Regression, Random Forest, Gradient Boosting) reach almost perfect performance on the test set, with MAE and RMSE very close to zero and R² equal to 1.0. This happens because the engineered target and features already capture the main relationship in a smooth, almost linear way.
+
+Since the more complex tree-based models do not bring a meaningful improvement over Linear Regression, we can treat Linear Regression as our main reference model and use the tree-based models mainly as a robustness check. This choice keeps the solution simple and easy to explain while still giving us very strong predictive performance.
+
+Based on these results, Linear Regression will be selected as the primary final model for deployment, while Random Forest and Gradient Boosting help confirm that the relationship is stable and not model-dependent.
+ 
+# Note on polynomial/interaction features
+
+We briefly considered adding polynomial or interaction terms (for example squared mileage or interactions between miles and receipts). However, after feature engineering and scaling, all three models already achieved R^2 = 1.0 on the test set. This suggests that the existing features capture the relationship very well, so adding extra nonlinear terms would mainly increase complexity without improving performance.
+
+# Export Final Model
+ 
+```{python}
+import joblib
+# choose final model (here Linear Regression because the results are equivalent to RF and GBM)
+final_model = lr
+joblib.dump(final_model, "../models/final_model.pkl")
+print("Model saved as final_model.pkl")
+```
+
+
+
+

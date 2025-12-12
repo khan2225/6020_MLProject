@@ -70,7 +70,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <link href="02_feature_engineering_files/libs/quarto-html/quarto-syntax-highlighting-587c61ba64f3a5504c4d52d930310e48.css" rel="stylesheet" id="quarto-text-highlighting-styles">
 <script src="02_feature_engineering_files/libs/bootstrap/bootstrap.min.js"></script>
 <link href="02_feature_engineering_files/libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
-<link href="02_feature_engineering_files/libs/bootstrap/bootstrap-4d7f0bce1131f3e5f9547cd857cfbfc8.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<link href="02_feature_engineering_files/libs/bootstrap/bootstrap-a74871fe4945b66d259aafc266475145.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
 <script src="https://cdn.jsdelivr.net/npm/requirejs@2.3.6/require.min.js" integrity="sha384-c9c+LnTbwQ3aujuU7ULEPVvgLs+Fn6fJUvIGTsuu1ZcCf11fiEubah0ttpca4ntM sha384-6V1/AdqZRWk1KAlWbKBlGhN7VG4iE/yAZcO6NZPMF8od0vukrvr0tg4qY6NSrItx" crossorigin="anonymous"></script>
 
 <script type="application/javascript">define('jquery', [],function() {return window.jQuery;})</script>
@@ -128,7 +128,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </section>
 <section id="basic-set-up" class="level1" data-number="2">
 <h1 data-number="2"><span class="header-section-number">2</span> Basic set up</h1>
-<div id="7c6253da" class="cell" data-execution_count="1">
+<div id="a6b300ee" class="cell" data-execution_count="1">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> pandas <span class="im">as</span> pd</span>
 <span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> numpy <span class="im">as</span> np</span>
 <span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a></span>
@@ -204,26 +204,26 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <ol type="1">
 <li>cost_per_mile</li>
 </ol>
-<div id="e6373ffa" class="cell" data-execution_count="2">
+<div id="05b4dfaf" class="cell" data-execution_count="2">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb2"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>features[<span class="st">"cost_per_mile"</span>] <span class="op">=</span> features[<span class="st">"reimbursement_amount"</span>] <span class="op">/</span> features[<span class="st">"miles_traveled"</span>]</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <ol start="2" type="1">
 <li>cost_per_day</li>
 </ol>
-<div id="818ddf89" class="cell" data-execution_count="3">
+<div id="8123308f" class="cell" data-execution_count="3">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb3"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>features[<span class="st">"cost_per_day"</span>] <span class="op">=</span> features[<span class="st">"reimbursement_amount"</span>] <span class="op">/</span> features[<span class="st">"trip_duration_days"</span>]</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <p>3.receipts_ratio</p>
-<div id="f5b94600" class="cell" data-execution_count="4">
+<div id="f78cc9ec" class="cell" data-execution_count="4">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb4"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>features[<span class="st">"receipts_ratio"</span>] <span class="op">=</span> features[<span class="st">"total_receipts_amount"</span>] <span class="op">/</span> features[<span class="st">"reimbursement_amount"</span>]</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <ol start="4" type="1">
 <li>miles_per_date</li>
 </ol>
-<div id="6aa6cf04" class="cell" data-execution_count="5">
+<div id="a7f38a75" class="cell" data-execution_count="5">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb5"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>features[<span class="st">"miles_per_day"</span>] <span class="op">=</span> features[<span class="st">"miles_traveled"</span>] <span class="op">/</span> features[<span class="st">"trip_duration_days"</span>]</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
-<div id="41c06887" class="cell" data-execution_count="6">
+<div id="4a81ee1a" class="cell" data-execution_count="6">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb6"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>features.head()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-display" data-execution_count="6">
 <div>
@@ -309,7 +309,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </section>
 <section id="check-missing-values-again" class="level1" data-number="4">
 <h1 data-number="4"><span class="header-section-number">4</span> Check missing values again</h1>
-<div id="178db6a8" class="cell" data-execution_count="7">
+<div id="d68ed80e" class="cell" data-execution_count="7">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb7"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>features.isnull().<span class="bu">sum</span>()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-display" data-execution_count="7">
 <pre><code>trip_duration_days       0
@@ -327,7 +327,7 @@ dtype: int64</code></pre>
 </section>
 <section id="normalize-or-scale-if-needed" class="level1" data-number="5">
 <h1 data-number="5"><span class="header-section-number">5</span> Normalize or scale if needed</h1>
-<div id="4465739a" class="cell" data-execution_count="8">
+<div id="793616da" class="cell" data-execution_count="8">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb9"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a>scaler <span class="op">=</span> StandardScaler()</span>
 <span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>scaled_cols <span class="op">=</span> [<span class="st">"miles_traveled"</span>, <span class="st">"total_receipts_amount"</span>, <span class="st">"trip_duration_days"</span>]</span>
 <span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a></span>
@@ -436,7 +436,7 @@ dtype: int64</code></pre>
 </div>
 </div>
 <p>Scaled mileage, receipts, and duration to help models that are sensitive to feature magnitudes (e.g., linear regression, ridge).</p>
-<div id="9a957feb" class="cell" data-execution_count="9">
+<div id="293dc06a" class="cell" data-execution_count="9">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb10"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> seaborn <span class="im">as</span> sns</span>
 <span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> matplotlib.pyplot <span class="im">as</span> plt</span>
 <span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a></span>
@@ -453,7 +453,7 @@ dtype: int64</code></pre>
 </div>
 </div>
 <p>New features correlate with reimbursement in expected ways, confirming they capture useful patterns.</p>
-<div id="c58754c6" class="cell" data-execution_count="10">
+<div id="bca74749" class="cell" data-execution_count="10">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb11"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a>features.to_csv(<span class="st">"../data/features_processed.csv"</span>, index<span class="op">=</span><span class="va">False</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <p>Exported cleaned and feature-engineered data for model development in the next notebook.</p>
