@@ -17,7 +17,7 @@ that help the model capture cost behavior more effectively.
 We will create new features (e.g., cost_per_mile, cost_per_day, receipts_ratio), 
 normalize the data if needed, and document the transformations clearly.
 
-# Basic set up
+# Basic Set Up
 ```{python}
 import pandas as pd
 import numpy as np
@@ -33,35 +33,46 @@ features["reimbursement_amount"] = df["expected_output"]
 
 features.head()
 ```
-# Create new features
+
+# Create New Features
+
  1. cost_per_mile
 ```{python} 
 features["cost_per_mile"] = features["reimbursement_amount"] / features["miles_traveled"]
 ```
+
  2. cost_per_day
 ```{python}
 features["cost_per_day"] = features["reimbursement_amount"] / features["trip_duration_days"]
 ```
- 3.receipts_ratio
+
+ 3. receipts_ratio
 ```{python}
 features["receipts_ratio"] = features["total_receipts_amount"] / features["reimbursement_amount"]
 ```
+
  4. miles_per_date
 ```{python}
 features["miles_per_day"] = features["miles_traveled"] / features["trip_duration_days"]
 ```
+
 ```{python}
 features.head()
 ```
-I created several derived features to capture spending patterns per unit distance and per trip day. These ratios help quantify how mileage and receipts scale with reimbursements, which should give ML models more structure to learn from.
 
-# Check missing values again
+There were several derived features created to capture spending patterns per unit distance and per trip day. These ratios help quantify how mileage and receipts scale with reimbursements, which should give ML models more structure to learn from.
+
+
+# Check Missing Values Again
+
 ```{python}
 features.isnull().sum()
 ```
 No missing values were introduced during feature calculation.
 
-# Normalize or scale if needed
+Polynomial features were not included because tree-based models naturally capture nonlinear patterns and threshold behaviors without requiring explicit polynomial transformations. 
+
+# Normalize or Scale if Needed
 ```{python}
 scaler = StandardScaler()
 scaled_cols = ["miles_traveled", "total_receipts_amount", "trip_duration_days"]
@@ -73,6 +84,7 @@ features = pd.concat([features, scaled_df], axis=1)
 
 features.head()
 ```
+
 Scaled mileage, receipts, and duration to help models that are sensitive to feature magnitudes (e.g., linear regression, ridge).
 
 ```{python}
@@ -84,9 +96,12 @@ sns.heatmap(features.corr(), annot=False, cmap="coolwarm")
 plt.title("Correlation after Feature Engineering")
 plt.show()
 ```
+
 New features correlate with reimbursement in expected ways, confirming they capture useful patterns.
+
 ```{python}
 features.to_csv("../data/features_processed.csv", index=False)
 ```
-Exported cleaned and feature-engineered data for model development in the next notebook.
+
+Exporting the processed feature dataset ensures that every notebook, modeling and interpertability, uses the exact same cleaned and engineered inputs. This keeps the workflow consistent and reproducible, and prepares the data for the next step in model development. 
 
