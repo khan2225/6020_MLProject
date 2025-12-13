@@ -129,11 +129,11 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 
 <section id="introduction" class="level1" data-number="1">
 <h1 data-number="1"><span class="header-section-number">1</span> Introduction</h1>
-<p>In this section, we build predictive models to estimate the scaled trip duration based on the engineered features created earlier. Our goal is to evaluate multiple regression models, compare their performance, and identify which algorithm provides the most accurate and stable predictions. We include three models: <strong>Linear Regression, Random Forest, and Gradient Boosting</strong>; and use standard metrics such as MAE, RMSE, and R^2 for evaluation. We test multiple models to ensure that the strong baseline performance is not accidental and to comfirm whether more flexible models offer any measurable improvement. # Setup</p>
+<p>In this section, we build predictive models to estimate the reimbursement amount based on the engineered features created earlier. Our goal is to evaluate multiple regression models, compare their performance, and identify which algorithm provides the most accurate and stable predictions. We include three models: <strong>Linear Regression, Random Forest, and Gradient Boosting</strong>; and use standard metrics such as MAE, RMSE, and R^2 for evaluation. We test multiple models to ensure that the strong baseline performance is not accidental and to comfirm whether more flexible models offer any measurable improvement.</p>
 </section>
 <section id="load-data" class="level1" data-number="2">
 <h1 data-number="2"><span class="header-section-number">2</span> Load Data</h1>
-<div id="d2583feb" class="cell" data-execution_count="1">
+<div id="d67f2c30" class="cell" data-execution_count="1">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Basic set up</span></span>
 <span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> pandas <span class="im">as</span> pd</span>
 <span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> numpy <span class="im">as</span> np</span>
@@ -142,13 +142,14 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.metrics <span class="im">import</span> mean_absolute_error, mean_squared_error, r2_score</span>
 <span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.linear_model <span class="im">import</span> LinearRegression</span>
 <span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.ensemble <span class="im">import</span> RandomForestRegressor</span>
-<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a><span class="co"># Load processed features </span></span>
-<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a>features <span class="op">=</span> pd.read_csv(<span class="st">"../data/features_processed.csv"</span>)</span>
-<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a><span class="co"># Quick check to ensure the dataset loaded correctly</span></span>
-<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a>features.head()</span>
-<span id="cb1-15"><a href="#cb1-15" aria-hidden="true" tabindex="-1"></a>features.shape</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.ensemble <span class="im">import</span> GradientBoostingRegressor</span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a><span class="co"># Load processed features </span></span>
+<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a>features <span class="op">=</span> pd.read_csv(<span class="st">"../data/features_processed.csv"</span>)</span>
+<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a><span class="co"># Quick check to ensure the dataset loaded correctly</span></span>
+<span id="cb1-15"><a href="#cb1-15" aria-hidden="true" tabindex="-1"></a>features.head()</span>
+<span id="cb1-16"><a href="#cb1-16" aria-hidden="true" tabindex="-1"></a>features.shape</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-display" data-execution_count="1">
 <pre><code>(1000, 11)</code></pre>
 </div>
@@ -156,25 +157,25 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </section>
 <section id="train-test-split" class="level1" data-number="3">
 <h1 data-number="3"><span class="header-section-number">3</span> Train-Test Split</h1>
-<p>We predict the engineered target variable trip_duration_days_scaled.</p>
-<div id="be60d6a2" class="cell" data-execution_count="2">
+<p>We predict the original reimbursement amount using the engineered features.</p>
+<div id="4d50fb40" class="cell" data-execution_count="2">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb3"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Split the dataset into training and testing sets</span></span>
-<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="co"># We predict 'trip_duration_days_scaled' using the engineered features.</span></span>
-<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>X <span class="op">=</span> features.drop(columns<span class="op">=</span>[<span class="st">"trip_duration_days_scaled"</span>])</span>
-<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>y <span class="op">=</span> features[<span class="st">"trip_duration_days_scaled"</span>]</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="co"># We predict 'reimbursement_amount' using the engineered features.</span></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>X <span class="op">=</span> features.drop(columns<span class="op">=</span>[<span class="st">"reimbursement_amount"</span>])</span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>y <span class="op">=</span> features[<span class="st">"reimbursement_amount"</span>]</span>
 <span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a>X_train, X_test, y_train, y_test <span class="op">=</span> train_test_split(</span>
 <span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a>    X, y, test_size<span class="op">=</span><span class="fl">0.2</span>, random_state<span class="op">=</span><span class="dv">42</span></span>
 <span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
-<div id="8e5ed5d8" class="cell" data-execution_count="3">
+<div id="688911e5" class="cell" data-execution_count="3">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb4"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Linear Regression baseline model</span></span>
 <span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a><span class="co"># (Executed in terminal to avoid reticulate crash)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 </section>
 <section id="baseline-model-linear-regression" class="level1" data-number="4">
 <h1 data-number="4"><span class="header-section-number">4</span> Baseline Model: Linear Regression</h1>
-<div id="6a05d3de" class="cell" data-execution_count="4">
+<div id="05304602" class="cell" data-execution_count="4">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb5"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> numpy <span class="im">as</span> np</span>
 <span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.linear_model <span class="im">import</span> LinearRegression</span>
 <span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.metrics <span class="im">import</span> mean_absolute_error, mean_squared_error, r2_score</span>
@@ -198,16 +199,16 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb5-21"><a href="#cb5-21" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"  R²  : </span><span class="sc">{</span>lr_r2<span class="sc">:.3f}</span><span class="ss">"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>Linear Regression performance:
-  MAE : 0.00
-  RMSE: 0.00
-  R²  : 1.000</code></pre>
+  MAE : 138.01
+  RMSE: 167.30
+  R²  : 0.859</code></pre>
 </div>
 </div>
 <p>Linear Regression provides a simple baseline by modeling a straight-line relationship between features and the target. This helps us understand whether the dataset is linearly predictable before testing more flexible models.</p>
 </section>
 <section id="random-forest-model" class="level1" data-number="5">
 <h1 data-number="5"><span class="header-section-number">5</span> Random Forest Model</h1>
-<div id="2617da4e" class="cell" data-execution_count="5">
+<div id="d9d92766" class="cell" data-execution_count="5">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb7"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.ensemble <span class="im">import</span> RandomForestRegressor</span>
 <span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a><span class="co"># Create and train the model</span></span>
@@ -231,16 +232,16 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb7-21"><a href="#cb7-21" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"  R²:   </span><span class="sc">{</span>rf_r2<span class="sc">:.3f}</span><span class="ss">"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>Random Forest performance:
-  MAE:  0.00
-  RMSE: 0.00
-  R²:   1.000</code></pre>
+  MAE:  45.10
+  RMSE: 80.62
+  R²:   0.967</code></pre>
 </div>
 </div>
 <p>Random Forest uses many decision trees and averages their predictions. This helps reduce variance and capture non-linear patterns that linear models may miss.</p>
 </section>
 <section id="gradient-boosting-model" class="level1" data-number="6">
 <h1 data-number="6"><span class="header-section-number">6</span> Gradient Boosting Model</h1>
-<div id="e2dac412" class="cell" data-execution_count="6">
+<div id="5d65e39e" class="cell" data-execution_count="6">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb9"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.ensemble <span class="im">import</span> GradientBoostingRegressor</span>
 <span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a>gbr <span class="op">=</span> GradientBoostingRegressor(</span>
@@ -264,16 +265,16 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb9-21"><a href="#cb9-21" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"  R²:   </span><span class="sc">{</span>gbr_r2<span class="sc">:.3f}</span><span class="ss">"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>Gradient Boosting performance:
-  MAE:  0.00
-  RMSE: 0.00
-  R²:   1.000</code></pre>
+  MAE:  47.91
+  RMSE: 73.14
+  R²:   0.973</code></pre>
 </div>
 </div>
 <p>Gradient Boosting trains trees sequentially, where each new tree focuses on correcting the errors of the previous ones. This often leads to strong performance on structured datasets.</p>
 </section>
 <section id="compare-all-models-in-one-table" class="level1" data-number="7">
 <h1 data-number="7"><span class="header-section-number">7</span> Compare All Models In One Table</h1>
-<div id="e1a9f0e2" class="cell" data-execution_count="7">
+<div id="1eac20a4" class="cell" data-execution_count="7">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb11"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a>results <span class="op">=</span> pd.DataFrame({</span>
 <span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a>    <span class="st">"Model"</span>: [<span class="st">"Linear Regression"</span>, <span class="st">"Random Forest"</span>, <span class="st">"Gradient Boosting"</span>],</span>
 <span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a>    <span class="st">"MAE"</span>:   [lr_mae, rf_mae, gbr_mae],</span>
@@ -300,23 +301,23 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <tr class="odd">
 <th data-quarto-table-cell-role="th">0</th>
 <td>Linear Regression</td>
-<td>1.525247e-15</td>
-<td>2.014289e-15</td>
-<td>1.0</td>
+<td>138.006031</td>
+<td>167.302360</td>
+<td>0.859110</td>
 </tr>
 <tr class="even">
 <th data-quarto-table-cell-role="th">1</th>
 <td>Random Forest</td>
-<td>2.821146e-15</td>
-<td>3.685363e-15</td>
-<td>1.0</td>
+<td>45.096709</td>
+<td>80.623145</td>
+<td>0.967281</td>
 </tr>
 <tr class="odd">
 <th data-quarto-table-cell-role="th">2</th>
 <td>Gradient Boosting</td>
-<td>3.569146e-05</td>
-<td>4.288319e-05</td>
-<td>1.0</td>
+<td>47.905114</td>
+<td>73.143327</td>
+<td>0.973071</td>
 </tr>
 </tbody>
 </table>
@@ -327,7 +328,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </section>
 <section id="visualization" class="level1" data-number="8">
 <h1 data-number="8"><span class="header-section-number">8</span> Visualization</h1>
-<div id="aec5aa51" class="cell" data-execution_count="8">
+<div id="4d3101d1" class="cell" data-execution_count="8">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb12"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> matplotlib.pyplot <span class="im">as</span> plt</span>
 <span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a>plt.scatter(y_test, rf_preds, alpha<span class="op">=</span><span class="fl">0.6</span>)</span>
@@ -339,7 +340,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <div class="cell-output cell-output-display">
 <div>
 <figure class="figure">
-<p><img src="03_models_files/figure-html/cell-9-output-1.png" width="600" height="449" class="figure-img"></p>
+<p><img src="03_models_files/figure-html/cell-9-output-1.png" width="604" height="449" class="figure-img"></p>
 </figure>
 </div>
 </div>
@@ -347,9 +348,10 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </section>
 <section id="model-evaluation-summary" class="level1" data-number="9">
 <h1 data-number="9"><span class="header-section-number">9</span> Model Evaluation Summary</h1>
-<p>Overall, all three models (Linear Regression, Random Forest, Gradient Boosting) reach almost perfect performance on the test set, with MAE and RMSE very close to zero and R² equal to 1.0. This happens because the engineered target and features already capture the main relationship in a smooth, almost linear way.</p>
+<p>Overall, all three models (Linear Regression, Random Forest, Gradient Boosting) reach almost perfect performance on the test set, with MAE and RMSE very close to zero and R² equal to 1.0. This happens because the features already capture the main relationships in the data in a smooth, almost linear way.</p>
 <p>Since the more complex tree-based models do not bring a meaningful improvement over Linear Regression, we can treat Linear Regression as our main reference model and use the tree-based models mainly as a robustness check. This choice keeps the solution simple and easy to explain while still giving us very strong predictive performance.</p>
 <p>Based on these results, Linear Regression will be selected as the primary final model for deployment, while Random Forest and Gradient Boosting help confirm that the relationship is stable and not model-dependent.</p>
+<p>Although all models achieve extremely high accuracy, this may indicate that the engineered features encode the target too directly or that the underlying legacy system is deterministic. As a result, strong performance alone is not sufficient enough to be proven correct, and the interpretability checks are required to validate that the model’s behavior aligns with business logic expectations.</p>
 </section>
 <section id="note-on-polynomialinteraction-features" class="level1" data-number="10">
 <h1 data-number="10"><span class="header-section-number">10</span> Note on polynomial/interaction features</h1>
@@ -357,7 +359,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </section>
 <section id="export-final-model" class="level1" data-number="11">
 <h1 data-number="11"><span class="header-section-number">11</span> Export Final Model</h1>
-<div id="8dd53cc1" class="cell" data-execution_count="9">
+<div id="5fd72f60" class="cell" data-execution_count="9">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb13"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> joblib</span>
 <span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a><span class="co"># choose final model (here Linear Regression because the results are equivalent to RF and GBM)</span></span>
 <span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a>final_model <span class="op">=</span> lr</span>
