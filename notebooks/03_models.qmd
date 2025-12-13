@@ -13,9 +13,9 @@ execute:
 
 # Introduction
 
-In this section, we build predictive models to estimate the scaled trip duration based on the engineered features created earlier. Our goal is to evaluate multiple regression models, compare their performance, and identify which algorithm provides the most accurate and stable predictions. We include three models: **Linear Regression, Random Forest, and Gradient Boosting**; and use standard metrics such as MAE, RMSE, and R^2 for evaluation.
-We test multiple models to ensure that the strong baseline performance is not accidental and to comfirm whether more flexible models offer any measurable improvement.
-# Setup
+In this section, we build predictive models to estimate the reimbursement amount based on the engineered features created earlier. Our goal is to evaluate multiple regression models, compare their performance, and identify which algorithm provides the most accurate and stable predictions. We include three models: **Linear Regression, Random Forest, and Gradient Boosting**; and use standard metrics such as MAE, RMSE, and R^2 for evaluation.
+We test multiple models to ensure that the strong baseline performance is not accidental and to confirm whether more flexible models offer any measurable improvement.
+
 
 
 # Load Data
@@ -28,6 +28,7 @@ from sklearn.model_selection import train_test_split
 from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
 from sklearn.linear_model import LinearRegression
 from sklearn.ensemble import RandomForestRegressor
+from sklearn.ensemble import GradientBoostingRegressor
 
 # Load processed features 
 features = pd.read_csv("../data/features_processed.csv")
@@ -36,15 +37,16 @@ features = pd.read_csv("../data/features_processed.csv")
 features.head()
 features.shape
 ```
+
 # Train-Test Split
 
-We predict the engineered target variable trip_duration_days_scaled.
+We predict the original reimbursement amount using the engineered features. 
 
 ```{python}
 # Split the dataset into training and testing sets
-# We predict 'trip_duration_days_scaled' using the engineered features.
-X = features.drop(columns=["trip_duration_days_scaled"])
-y = features["trip_duration_days_scaled"]
+# We predict 'reimbursement_amount' using the engineered features.
+X = features.drop(columns=["reimbursement_amount"])
+y = features["reimbursement_amount"]
 
 X_train, X_test, y_train, y_test = train_test_split(
     X, y, test_size=0.2, random_state=42
@@ -162,11 +164,13 @@ plt.show()
 
 # Model Evaluation Summary
 
-Overall, all three models (Linear Regression, Random Forest, Gradient Boosting) reach almost perfect performance on the test set, with MAE and RMSE very close to zero and R² equal to 1.0. This happens because the engineered target and features already capture the main relationship in a smooth, almost linear way.
+Overall, all three models (Linear Regression, Random Forest, Gradient Boosting) reach almost perfect performance on the test set, with MAE and RMSE very close to zero and R² equal to 1.0. This happens because the features already capture the main relationships in the data in a smooth, almost linear way.
 
 Since the more complex tree-based models do not bring a meaningful improvement over Linear Regression, we can treat Linear Regression as our main reference model and use the tree-based models mainly as a robustness check. This choice keeps the solution simple and easy to explain while still giving us very strong predictive performance.
 
 Based on these results, Linear Regression will be selected as the primary final model for deployment, while Random Forest and Gradient Boosting help confirm that the relationship is stable and not model-dependent.
+
+Although all models achieve extremely high accuracy, this may indicate that the engineered features encode the target too directly or that the underlying legacy system is deterministic. As a result, strong performance alone is not sufficient enough to be proven correct, and the interpretability checks are required to validate that the model's behavior aligns with business logic expectations. 
  
 # Note on polynomial/interaction features
 
