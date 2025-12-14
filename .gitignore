@@ -24,6 +24,8 @@ reports/*_files/
 ._*
 .DS_Store
 
-
 # Backup files
 *~
+
+# PyCharm .idea directory
+.idea/
