@@ -164,17 +164,23 @@ plt.show()
 
 # Model Evaluation Summary
 
-Overall, all three models (Linear Regression, Random Forest, Gradient Boosting) reach almost perfect performance on the test set, with MAE and RMSE very close to zero and R² equal to 1.0. This happens because the features already capture the main relationships in the data in a smooth, almost linear way.
+Overall, all three models (Linear Regression, Random Forest, Gradient Boosting) achieve strong predictive performance, but on different levels. The tree-based models, particularly Gradient Boosting, show the highest accuracy with R^2 values around 0.97 and relatively low MAE and RMSE. Linear Regression performs reasonalbly well but does not capture as much of the variability as the ensemble models. This shows that the relationship between the engineered features and the reimbursement amount contains nonlinear patterns that the ensemble models are able to capture more effectively. 
 
-Since the more complex tree-based models do not bring a meaningful improvement over Linear Regression, we can treat Linear Regression as our main reference model and use the tree-based models mainly as a robustness check. This choice keeps the solution simple and easy to explain while still giving us very strong predictive performance.
+Linear Regression provides a useful baseline, but its lower R^2 value (0.86) indicates that it cannot fully model the underlying complexity of the legacy reimbursement system. The improvement from Linear Regression to the tree-based models suggests that the system's rules are not purely linear and that more flexible models are needed to represent its behavior. 
 
-Based on these results, Linear Regression will be selected as the primary final model for deployment, while Random Forest and Gradient Boosting help confirm that the relationship is stable and not model-dependent.
+Based on these findings, Gradient Boosting and Random Forest offer the most stable and accurate performance. Linear Regression is still valuable as a reference model, but the ensemble methods better reflect the structure and variablity present in the data. 
 
-Although all models achieve extremely high accuracy, this may indicate that the engineered features encode the target too directly or that the underlying legacy system is deterministic. As a result, strong performance alone is not sufficient enough to be proven correct, and the interpretability checks are required to validate that the model's behavior aligns with business logic expectations. 
+Although the models reach high accuracy, this does not gurantee that they fully reconstruct the undocumented business logic of the legacy system. Some of the strong performance may result from deterministic patterns in the engineered features, so interpretability checks are required to validate that the model's decisions align with domain expectations. 
+
+Since the more complex models demonstrate noticeably better accuracy than Linear Regression, we treat Gradient Boosting and Random Forest as robust checks to confirm that the relationship between features and reimbursement amount is stable. Linear Regression remains useful as a simpler baseline, but the ensemble models better capture the underlying structure of the legacy system. 
+
+
  
 # Note on polynomial/interaction features
 
-We briefly considered adding polynomial or interaction terms (for example squared mileage or interactions between miles and receipts). However, after feature engineering and scaling, all three models already achieved R^2 = 1.0 on the test set. This suggests that the existing features capture the relationship very well, so adding extra nonlinear terms would mainly increase complexity without improving performance.
+We briefly considered adding polynomial or interaction terms (for example squared mileage or interactions between miles and receipts). However, the tree-based models already capture nonlinear patterns automatically, and both Random Forest and Gradient Boosting achieve high accuracy eithout requiring additional engineered nonlinear features.
+
+While adding polynomial terms might help Linear Regression slightly, it would also increase model complexity and reduce interpretability. Since the ensemble models already learn these relationships effectively and outperform the linear model, introducing extra polynomial or interaction features was not necessary for achieving strong predictive performance. 
 
 # Export Final Model
  
