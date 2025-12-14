@@ -87,17 +87,16 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
    
   <ul>
   <li><a href="#introduction" id="toc-introduction" class="nav-link active" data-scroll-target="#introduction"><span class="header-section-number">1</span> Introduction</a></li>
-  <li><a href="#set-up" id="toc-set-up" class="nav-link" data-scroll-target="#set-up"><span class="header-section-number">2</span> Set up</a></li>
-  <li><a href="#load-processed-features-and-recreate-traintest-split" id="toc-load-processed-features-and-recreate-traintest-split" class="nav-link" data-scroll-target="#load-processed-features-and-recreate-traintest-split"><span class="header-section-number">3</span> Load processed features and recreate train–test split</a></li>
-  <li><a href="#feature-importance" id="toc-feature-importance" class="nav-link" data-scroll-target="#feature-importance"><span class="header-section-number">4</span> Feature Importance</a>
+  <li><a href="#load-processed-features-and-recreate-traintest-split" id="toc-load-processed-features-and-recreate-traintest-split" class="nav-link" data-scroll-target="#load-processed-features-and-recreate-traintest-split"><span class="header-section-number">2</span> Load Processed Features and Recreate Train–Test Split</a></li>
+  <li><a href="#feature-importance" id="toc-feature-importance" class="nav-link" data-scroll-target="#feature-importance"><span class="header-section-number">3</span> Feature Importance</a>
   <ul class="collapse">
-  <li><a href="#random-forest" id="toc-random-forest" class="nav-link" data-scroll-target="#random-forest"><span class="header-section-number">4.1</span> Random Forest</a></li>
-  <li><a href="#gradient-boosting-feature-importance" id="toc-gradient-boosting-feature-importance" class="nav-link" data-scroll-target="#gradient-boosting-feature-importance"><span class="header-section-number">4.2</span> Gradient Boosting Feature Importance</a></li>
+  <li><a href="#random-forest" id="toc-random-forest" class="nav-link" data-scroll-target="#random-forest"><span class="header-section-number">3.1</span> Random Forest</a></li>
+  <li><a href="#gradient-boosting-feature-importance" id="toc-gradient-boosting-feature-importance" class="nav-link" data-scroll-target="#gradient-boosting-feature-importance"><span class="header-section-number">3.2</span> Gradient Boosting Feature Importance</a></li>
   </ul></li>
-  <li><a href="#partial-dependence-plots-pdps" id="toc-partial-dependence-plots-pdps" class="nav-link" data-scroll-target="#partial-dependence-plots-pdps"><span class="header-section-number">5</span> Partial Dependence Plots (PDPs)</a></li>
-  <li><a href="#actual-vs-predicted" id="toc-actual-vs-predicted" class="nav-link" data-scroll-target="#actual-vs-predicted"><span class="header-section-number">6</span> Actual vs Predicted</a></li>
-  <li><a href="#residual-distribution-residuals-vs-predictions" id="toc-residual-distribution-residuals-vs-predictions" class="nav-link" data-scroll-target="#residual-distribution-residuals-vs-predictions"><span class="header-section-number">7</span> Residual Distribution + Residuals vs Predictions</a></li>
-  <li><a href="#summary" id="toc-summary" class="nav-link" data-scroll-target="#summary"><span class="header-section-number">8</span> Summary</a></li>
+  <li><a href="#partial-dependence-plots-pdps" id="toc-partial-dependence-plots-pdps" class="nav-link" data-scroll-target="#partial-dependence-plots-pdps"><span class="header-section-number">4</span> Partial Dependence Plots (PDPs)</a></li>
+  <li><a href="#actual-vs-predicted" id="toc-actual-vs-predicted" class="nav-link" data-scroll-target="#actual-vs-predicted"><span class="header-section-number">5</span> Actual vs Predicted</a></li>
+  <li><a href="#residual-distribution-residuals-vs-predictions" id="toc-residual-distribution-residuals-vs-predictions" class="nav-link" data-scroll-target="#residual-distribution-residuals-vs-predictions"><span class="header-section-number">6</span> Residual Distribution + Residuals vs Predictions</a></li>
+  <li><a href="#summary" id="toc-summary" class="nav-link" data-scroll-target="#summary"><span class="header-section-number">7</span> Summary</a></li>
   </ul>
 </nav>
 </div>
@@ -130,12 +129,17 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 
 <section id="introduction" class="level1" data-number="1">
 <h1 data-number="1"><span class="header-section-number">1</span> Introduction</h1>
-<p>The goal of this section is to understand how the trained models make predictions and to check whether the model behavior aligns with the patterns observed during EDA. Interpretability also helps confirm that the model is using features in a reasonable way and that its errors do not follow any strong pattern. This section includes: - Feature importance - Partial dependence plots - Actual vs.&nbsp;predicted - Residual analysis</p>
+<p>The goal of this section is to understand how the trained models make predictions and to check whether the model behavior aligns with the patterns observed during EDA.</p>
+<p>Interpretability also helps confirm that the model is using features in a reasonable way and that its errors do not follow any strong pattern.</p>
+<p>This section includes:</p>
+<ul>
+<li>Feature Importance</li>
+<li>Partial Dependence Plots</li>
+<li>Actual vs.&nbsp;Predicted</li>
+<li>Residual Analysis</li>
+</ul>
 <p>These steps provide a clear overview of how reliable and transparent the final model is.</p>
-</section>
-<section id="set-up" class="level1" data-number="2">
-<h1 data-number="2"><span class="header-section-number">2</span> Set up</h1>
-<div id="57709e8d" class="cell" data-execution_count="1">
+<div id="3835fdb0" class="cell" data-execution_count="1">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> pandas <span class="im">as</span> pd</span>
 <span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> numpy <span class="im">as</span> np</span>
 <span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a></span>
@@ -148,17 +152,17 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.inspection <span class="im">import</span> PartialDependenceDisplay</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 </section>
-<section id="load-processed-features-and-recreate-traintest-split" class="level1" data-number="3">
-<h1 data-number="3"><span class="header-section-number">3</span> Load processed features and recreate train–test split</h1>
+<section id="load-processed-features-and-recreate-traintest-split" class="level1" data-number="2">
+<h1 data-number="2"><span class="header-section-number">2</span> Load Processed Features and Recreate Train–Test Split</h1>
 <p>Here we reload the processed dataset and recreate the exact same train/test split as the previous modeling file. This ensures the interpretability results match the final training conditions.</p>
-<div id="8bf10260" class="cell" data-execution_count="2">
+<div id="21cea695" class="cell" data-execution_count="2">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb2"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Load the final processed feature matrix</span></span>
 <span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>features <span class="op">=</span> pd.read_csv(<span class="st">"../data/features_processed.csv"</span>)</span>
 <span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a><span class="co"># Identify the correct target column (scaled version)</span></span>
 <span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a>target_col <span class="op">=</span> <span class="st">"trip_duration_days_scaled"</span></span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a>target_col <span class="op">=</span> <span class="st">"reimbursement_amount"</span></span>
 <span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a><span class="co"># Recreate X and y</span></span>
 <span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a></span>
@@ -180,7 +184,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb2-26"><a href="#cb2-26" aria-hidden="true" tabindex="-1"></a>gb.fit(X_train, y_train)</span>
 <span id="cb2-27"><a href="#cb2-27" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb2-28"><a href="#cb2-28" aria-hidden="true" tabindex="-1"></a>X.head()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<div class="cell-output cell-output-display" data-execution_count="2">
+<div class="cell-output cell-output-display" data-execution_count="12">
 <div>
 
 
@@ -191,13 +195,13 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <th data-quarto-table-cell-role="th">trip_duration_days</th>
 <th data-quarto-table-cell-role="th">miles_traveled</th>
 <th data-quarto-table-cell-role="th">total_receipts_amount</th>
-<th data-quarto-table-cell-role="th">reimbursement_amount</th>
 <th data-quarto-table-cell-role="th">cost_per_mile</th>
 <th data-quarto-table-cell-role="th">cost_per_day</th>
 <th data-quarto-table-cell-role="th">receipts_ratio</th>
 <th data-quarto-table-cell-role="th">miles_per_day</th>
 <th data-quarto-table-cell-role="th">miles_traveled_scaled</th>
 <th data-quarto-table-cell-role="th">total_receipts_amount_scaled</th>
+<th data-quarto-table-cell-role="th">trip_duration_days_scaled</th>
 </tr>
 </thead>
 <tbody>
@@ -206,65 +210,65 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <td>3</td>
 <td>93.0</td>
 <td>1.42</td>
-<td>364.51</td>
 <td>3.919462</td>
 <td>121.503333</td>
 <td>0.003896</td>
 <td>31.000000</td>
 <td>-1.436568</td>
 <td>-1.629179</td>
+<td>-1.030280</td>
 </tr>
 <tr class="even">
 <th data-quarto-table-cell-role="th">1</th>
 <td>1</td>
 <td>55.0</td>
 <td>3.60</td>
-<td>126.06</td>
 <td>2.292000</td>
 <td>126.060000</td>
 <td>0.028558</td>
 <td>55.000000</td>
 <td>-1.544792</td>
 <td>-1.626243</td>
+<td>-1.539941</td>
 </tr>
 <tr class="odd">
 <th data-quarto-table-cell-role="th">2</th>
 <td>1</td>
 <td>47.0</td>
 <td>17.97</td>
-<td>128.91</td>
 <td>2.742766</td>
 <td>128.910000</td>
 <td>0.139400</td>
 <td>47.000000</td>
 <td>-1.567576</td>
 <td>-1.606889</td>
+<td>-1.539941</td>
 </tr>
 <tr class="even">
 <th data-quarto-table-cell-role="th">3</th>
 <td>2</td>
 <td>13.0</td>
 <td>4.67</td>
-<td>203.52</td>
 <td>15.655385</td>
 <td>101.760000</td>
 <td>0.022946</td>
 <td>6.500000</td>
 <td>-1.664408</td>
 <td>-1.624801</td>
+<td>-1.285111</td>
 </tr>
 <tr class="odd">
 <th data-quarto-table-cell-role="th">4</th>
 <td>3</td>
 <td>88.0</td>
 <td>5.78</td>
-<td>380.37</td>
 <td>4.322386</td>
 <td>126.790000</td>
 <td>0.015196</td>
 <td>29.333333</td>
 <td>-1.450808</td>
 <td>-1.623306</td>
+<td>-1.030280</td>
 </tr>
 </tbody>
 </table>
@@ -274,12 +278,12 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </div>
 <p>Random Forest provides feature importance scores based on how much each variable reduces prediction error across the trees. This gives a simple but useful view of which features matter the most.</p>
 </section>
-<section id="feature-importance" class="level1" data-number="4">
-<h1 data-number="4"><span class="header-section-number">4</span> Feature Importance</h1>
+<section id="feature-importance" class="level1" data-number="3">
+<h1 data-number="3"><span class="header-section-number">3</span> Feature Importance</h1>
 <p>Feature importance tells us which input variables influenced predictions the most.</p>
-<section id="random-forest" class="level2" data-number="4.1">
-<h2 data-number="4.1" class="anchored" data-anchor-id="random-forest"><span class="header-section-number">4.1</span> Random Forest</h2>
-<div id="0ff7563e" class="cell" data-execution_count="3">
+<section id="random-forest" class="level2" data-number="3.1">
+<h2 data-number="3.1" class="anchored" data-anchor-id="random-forest"><span class="header-section-number">3.1</span> Random Forest</h2>
+<div id="f4f3cc62" class="cell" data-execution_count="3">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb3"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>rf_importance <span class="op">=</span> rf.feature_importances_</span>
 <span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>importance_df <span class="op">=</span> pd.DataFrame({</span>
 <span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a><span class="st">"feature"</span>: X_train.columns,</span>
@@ -287,7 +291,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>}).sort_values(by<span class="op">=</span><span class="st">"importance"</span>, ascending<span class="op">=</span><span class="va">False</span>)</span>
 <span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a>importance_df</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<div class="cell-output cell-output-display" data-execution_count="3">
+<div class="cell-output cell-output-display" data-execution_count="13">
 <div>
 
 
@@ -301,54 +305,54 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </thead>
 <tbody>
 <tr class="odd">
+<th data-quarto-table-cell-role="th">2</th>
+<td>total_receipts_amount</td>
+<td>0.310937</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">8</th>
+<td>total_receipts_amount_scaled</td>
+<td>0.306834</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">9</th>
+<td>trip_duration_days_scaled</td>
+<td>0.097183</td>
+</tr>
+<tr class="even">
 <th data-quarto-table-cell-role="th">0</th>
 <td>trip_duration_days</td>
-<td>1.000000e+00</td>
+<td>0.083328</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">7</th>
+<td>miles_traveled_scaled</td>
+<td>0.061251</td>
 </tr>
 <tr class="even">
 <th data-quarto-table-cell-role="th">1</th>
 <td>miles_traveled</td>
-<td>2.618920e-17</td>
-</tr>
-<tr class="odd">
-<th data-quarto-table-cell-role="th">9</th>
-<td>total_receipts_amount_scaled</td>
-<td>2.594393e-17</td>
-</tr>
-<tr class="even">
-<th data-quarto-table-cell-role="th">8</th>
-<td>miles_traveled_scaled</td>
-<td>2.367578e-17</td>
-</tr>
-<tr class="odd">
-<th data-quarto-table-cell-role="th">7</th>
-<td>miles_per_day</td>
-<td>2.052656e-17</td>
-</tr>
-<tr class="even">
-<th data-quarto-table-cell-role="th">3</th>
-<td>reimbursement_amount</td>
-<td>2.033023e-17</td>
-</tr>
-<tr class="odd">
-<th data-quarto-table-cell-role="th">2</th>
-<td>total_receipts_amount</td>
-<td>1.947602e-17</td>
-</tr>
-<tr class="even">
-<th data-quarto-table-cell-role="th">5</th>
-<td>cost_per_day</td>
-<td>1.946255e-17</td>
+<td>0.058532</td>
 </tr>
 <tr class="odd">
 <th data-quarto-table-cell-role="th">4</th>
+<td>cost_per_day</td>
+<td>0.035591</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">5</th>
+<td>receipts_ratio</td>
+<td>0.022682</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">3</th>
 <td>cost_per_mile</td>
-<td>1.926381e-17</td>
+<td>0.020036</td>
 </tr>
 <tr class="even">
 <th data-quarto-table-cell-role="th">6</th>
-<td>receipts_ratio</td>
-<td>1.558995e-17</td>
+<td>miles_per_day</td>
+<td>0.003625</td>
 </tr>
 </tbody>
 </table>
@@ -356,7 +360,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </div>
 </div>
 </div>
-<div id="986d82a3" class="cell" data-execution_count="4">
+<div id="09b0dbef" class="cell" data-execution_count="4">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb4"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>plt.figure(figsize<span class="op">=</span>(<span class="dv">8</span>,<span class="dv">5</span>))</span>
 <span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>sns.barplot(data<span class="op">=</span>importance_df, x<span class="op">=</span><span class="st">"importance"</span>, y<span class="op">=</span><span class="st">"feature"</span>)</span>
 <span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>plt.title(<span class="st">"Random Forest Feature Importance"</span>)</span>
@@ -372,9 +376,9 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </div>
 <p>Higher values mean the feature had a stronger effect on predictions. We compare this ordering with what we saw during EDA to see if the model uses features logically.</p>
 </section>
-<section id="gradient-boosting-feature-importance" class="level2" data-number="4.2">
-<h2 data-number="4.2" class="anchored" data-anchor-id="gradient-boosting-feature-importance"><span class="header-section-number">4.2</span> Gradient Boosting Feature Importance</h2>
-<div id="313be45d" class="cell" data-execution_count="5">
+<section id="gradient-boosting-feature-importance" class="level2" data-number="3.2">
+<h2 data-number="3.2" class="anchored" data-anchor-id="gradient-boosting-feature-importance"><span class="header-section-number">3.2</span> Gradient Boosting Feature Importance</h2>
+<div id="763476eb" class="cell" data-execution_count="5">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb5"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>gb_importance <span class="op">=</span> gb.feature_importances_</span>
 <span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>gb_df <span class="op">=</span> pd.DataFrame({</span>
 <span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a><span class="st">"feature"</span>: X_train.columns,</span>
@@ -382,7 +386,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a>}).sort_values(by<span class="op">=</span><span class="st">"importance"</span>, ascending<span class="op">=</span><span class="va">False</span>)</span>
 <span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a>gb_df</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<div class="cell-output cell-output-display" data-execution_count="5">
+<div class="cell-output cell-output-display" data-execution_count="15">
 <div>
 
 
@@ -396,54 +400,54 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </thead>
 <tbody>
 <tr class="odd">
+<th data-quarto-table-cell-role="th">8</th>
+<td>total_receipts_amount_scaled</td>
+<td>0.462906</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">2</th>
+<td>total_receipts_amount</td>
+<td>0.148322</td>
+</tr>
+<tr class="odd">
 <th data-quarto-table-cell-role="th">0</th>
 <td>trip_duration_days</td>
-<td>1.0</td>
+<td>0.109377</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">9</th>
+<td>trip_duration_days_scaled</td>
+<td>0.075527</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">7</th>
+<td>miles_traveled_scaled</td>
+<td>0.073714</td>
 </tr>
 <tr class="even">
 <th data-quarto-table-cell-role="th">1</th>
 <td>miles_traveled</td>
-<td>0.0</td>
-</tr>
-<tr class="odd">
-<th data-quarto-table-cell-role="th">2</th>
-<td>total_receipts_amount</td>
-<td>0.0</td>
-</tr>
-<tr class="even">
-<th data-quarto-table-cell-role="th">3</th>
-<td>reimbursement_amount</td>
-<td>0.0</td>
+<td>0.049045</td>
 </tr>
 <tr class="odd">
 <th data-quarto-table-cell-role="th">4</th>
-<td>cost_per_mile</td>
-<td>0.0</td>
+<td>cost_per_day</td>
+<td>0.035492</td>
 </tr>
 <tr class="even">
 <th data-quarto-table-cell-role="th">5</th>
-<td>cost_per_day</td>
-<td>0.0</td>
-</tr>
-<tr class="odd">
-<th data-quarto-table-cell-role="th">6</th>
 <td>receipts_ratio</td>
-<td>0.0</td>
-</tr>
-<tr class="even">
-<th data-quarto-table-cell-role="th">7</th>
-<td>miles_per_day</td>
-<td>0.0</td>
+<td>0.023439</td>
 </tr>
 <tr class="odd">
-<th data-quarto-table-cell-role="th">8</th>
-<td>miles_traveled_scaled</td>
-<td>0.0</td>
+<th data-quarto-table-cell-role="th">3</th>
+<td>cost_per_mile</td>
+<td>0.018935</td>
 </tr>
 <tr class="even">
-<th data-quarto-table-cell-role="th">9</th>
-<td>total_receipts_amount_scaled</td>
-<td>0.0</td>
+<th data-quarto-table-cell-role="th">6</th>
+<td>miles_per_day</td>
+<td>0.003243</td>
 </tr>
 </tbody>
 </table>
@@ -451,7 +455,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </div>
 </div>
 </div>
-<div id="050a68ef" class="cell" data-execution_count="6">
+<div id="37b6a242" class="cell" data-execution_count="6">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb6"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>plt.figure(figsize<span class="op">=</span>(<span class="dv">8</span>,<span class="dv">5</span>))</span>
 <span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>sns.barplot(data<span class="op">=</span>gb_df, x<span class="op">=</span><span class="st">"importance"</span>, y<span class="op">=</span><span class="st">"feature"</span>)</span>
 <span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>plt.title(<span class="st">"Gradient Boosting Feature Importance"</span>)</span>
@@ -466,12 +470,13 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </div>
 </div>
 <p>Gradient Boosting usually focuses on fewer strong predictors. If both models highlight similar features,that increases confidence.</p>
+<p>Because several features are derived from the same base variables such as raw and scaled receipt amounts, feature importance values should be interpreted in relation to one another rather than individually.</p>
 </section>
 </section>
-<section id="partial-dependence-plots-pdps" class="level1" data-number="5">
-<h1 data-number="5"><span class="header-section-number">5</span> Partial Dependence Plots (PDPs)</h1>
+<section id="partial-dependence-plots-pdps" class="level1" data-number="4">
+<h1 data-number="4"><span class="header-section-number">4</span> Partial Dependence Plots (PDPs)</h1>
 <p>PDPs help show how the prediction changes when we vary one feature while keeping other constant.</p>
-<div id="2d2dd861" class="cell" data-execution_count="7">
+<div id="49aea797" class="cell" data-execution_count="7">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb7"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>features_to_plot <span class="op">=</span> [<span class="st">"total_receipts_amount_scaled"</span>,</span>
 <span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a><span class="st">"miles_traveled_scaled"</span>,</span>
 <span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a><span class="st">"trip_duration_days"</span>]</span>
@@ -494,13 +499,14 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </div>
 </div>
 </div>
-<p>The PDPs confirm the feature importance results:</p>
-<p>When trip duration increases, predicted reimbursement increases steadily. The other features remain mostly flat, meaning they do not meaningfully change model output. This suggests our engineered cost features did not add additional predictive power.</p>
+<p>The PDPs show that predicted reimbursement increases clearly as total receipt amounts increase, confirming that receipts are the main factor of influencing reimbursement decisions.</p>
+<p>Mileage and trip duration exhibit more gradual, monotonic effects, indicating that they contribute to reimbursement but have a lesser of a role compared to receipts.</p>
+<p>These trends are consistent with observations made from the EDA and employee interviews, suggesting that the model is learning consistent reimbursement rules structured reimbursement rules rather than random or misleading relationships.</p>
 </section>
-<section id="actual-vs-predicted" class="level1" data-number="6">
-<h1 data-number="6"><span class="header-section-number">6</span> Actual vs Predicted</h1>
+<section id="actual-vs-predicted" class="level1" data-number="5">
+<h1 data-number="5"><span class="header-section-number">5</span> Actual vs Predicted</h1>
 <p>This tells us how close model predictions are to the real test values.</p>
-<div id="cc64ca3b" class="cell" data-execution_count="8">
+<div id="e5c84f9e" class="cell" data-execution_count="8">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb9"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a>gb_preds <span class="op">=</span> gb.predict(X_test)</span>
 <span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a>plt.figure(figsize<span class="op">=</span>(<span class="dv">6</span>,<span class="dv">6</span>))</span>
@@ -514,17 +520,18 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <div class="cell-output cell-output-display">
 <div>
 <figure class="figure">
-<p><img src="04_interpretabillity_files/figure-html/cell-9-output-1.png" width="565" height="564" class="figure-img"></p>
+<p><img src="04_interpretabillity_files/figure-html/cell-9-output-1.png" width="564" height="564" class="figure-img"></p>
 </figure>
 </div>
 </div>
 </div>
-<p>The points roughly follow a diagonal line, meaning predictions are fairly close to real values. Some spread exists, especially for longer trips, which indicates the model performs reasonably well but is not perfect.</p>
+<p>Most points follow a diagonal pattern, showing that the predicted reimbursement values are generally close to the actual values.</p>
+<p>There is more variation for higher reimbursement amounts, which is expected for longer or more expensive trips. Overall, the model shows strong predictive performance without clear bias.</p>
 </section>
-<section id="residual-distribution-residuals-vs-predictions" class="level1" data-number="7">
-<h1 data-number="7"><span class="header-section-number">7</span> Residual Distribution + Residuals vs Predictions</h1>
+<section id="residual-distribution-residuals-vs-predictions" class="level1" data-number="6">
+<h1 data-number="6"><span class="header-section-number">6</span> Residual Distribution + Residuals vs Predictions</h1>
 <p>Residuals help us check whether there is any bias or cosistent error pattern.</p>
-<div id="1814f25d" class="cell" data-execution_count="9">
+<div id="319ee9bc" class="cell" data-execution_count="9">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb10"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a>residuals <span class="op">=</span> y_test <span class="op">-</span> gb_preds</span>
 <span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a>plt.figure(figsize<span class="op">=</span>(<span class="dv">6</span>,<span class="dv">4</span>))</span>
@@ -540,7 +547,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </div>
 </div>
 </div>
-<div id="86cd95df" class="cell" data-execution_count="10">
+<div id="16d16301" class="cell" data-execution_count="10">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb11"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a>plt.figure(figsize<span class="op">=</span>(<span class="dv">6</span>,<span class="dv">4</span>))</span>
 <span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a>plt.scatter(gb_preds, residuals, alpha<span class="op">=</span><span class="fl">0.5</span>)</span>
 <span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a>plt.axhline(<span class="dv">0</span>, color<span class="op">=</span><span class="st">"red"</span>, linestyle<span class="op">=</span><span class="st">"--"</span>)</span>
@@ -557,11 +564,14 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </div>
 </div>
 </div>
-<p>The residuals appear roughly centered around zero, with no strong bias pattern. A slightly uneven spread suggests uncertainty increases for longer trip durations, but overall, there are no systematic errors, meaning the model is making fair and consistent predictions.</p>
+<p>The residuals appear roughly centered around zero, with no strong bias pattern in the model’s prediction.</p>
+<p>A slightly wider spread for higher reimbursement values suggest increased uncertainty for extreme cases, which is reasonable given that in the real-world there’s a variety of travel expenses. Overall, the residual analysis supports the reliability of the model.</p>
 </section>
-<section id="summary" class="level1" data-number="8">
-<h1 data-number="8"><span class="header-section-number">8</span> Summary</h1>
-<p>Overall, the interpretability results are consistent with what we observed during EDA. The model mainly relies on trip duration, which makes sense given the structure of the reimbursement data. While uncertainty slightly increases for longer trips, there is no clear bias or systematic pattern in the errors. These findings suggest that the model is behaving logically, using features in a reasonable way, and producing predictions that align with domain expectations.</p>
+<section id="summary" class="level1" data-number="7">
+<h1 data-number="7"><span class="header-section-number">7</span> Summary</h1>
+<p>Overall, the interpretability results are consistent with what we observed during EDA. The model mainly relies heavily on receipt-related features, with trip duration and mileage providing play supporting roles, which matches how reimbursement decisions are expected to work.</p>
+<p>Feature importance and partial dependence plots confirm that the model behaves logically and structured way, rather than fitting random noise in the data. The residual analysis also show no clear bias or error patterns.</p>
+<p>Together, these findings suggest that the final model is both reliable and easy to interpret, and that it provides a conjecture of how the legacy reimbursement system works and its behavior.</p>
 </section>
 
 </main>
