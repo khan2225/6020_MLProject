@@ -1,109 +1,197 @@
-## Model development and selection
+---
+title: "Modeling Reimbursement Amount"
+author: "Harriet O'Brien, Vy Tran, Saniyah Khan, Rehinatu Usman"
+format: 
+    html:
+        toc: true
+        number-sections: true
+        theme: cosmo
+execute:
+    python:
+        reticulate: false
+---
 
-Exploratory analysis showed that all three input variables (trip duration, miles traveled,
-and total receipts) have reasonably well-behaved distributions with only mild outliers.
-Correlation analysis and pairwise scatter-plots revealed that reimbursement increases
-monotonically with each input, where the `total_receipts_amount` is the single most predictive
-feature (correlation $\rho \approx 0.70$), while `trip_duration_days` and `miles_traveled`
-also provide complementary signal ($\rho \approx 0.51$ and $\rho \approx 0.43$, respectively).
-The relationships appear roughly linear with some curvature and heteroscedasticity. Based on
-these findings, we adopted a modeling strategy that starts with simple error-based linear models
-and then increases flexibility using polynomial features and tree-based ensemble methods. This
-progression allows us to test whether the mostly linear patterns seen in the EDA are sufficient,
-while still capturing potential non-linear interactions and handling mild outliers robustly.
+# Introduction
 
-To keep the experiments reproducible, all models were defined via a YAML-specified pipeline
-configuration. Each entry in `pipelines.yaml` describes an `sklearn` pipeline by listing its
-preprocessing and estimator steps (for example, `preprocessing.StandardScaler` followed by
-`linear_model.Ridge` for Ridge regression). Using this mechanism, a collection of
-regression models were trained: ordinary least squares (OLS), several Ridge/Lasso/ElasticNet
-variants, polynomial Ridge models (degrees 2 and 3), single decision trees with varying
-depth, random forests, and multiple `GradientBoostingRegressor` configurations.
+In this section, we build predictive models to estimate the reimbursement amount based on the engineered features created earlier. Our goal is to evaluate multiple regression models, compare their performance, and identify which algorithm provides the most accurate and stable predictions. We include three models: **Linear Regression, Random Forest, and Gradient Boosting**; and use standard metrics such as MAE, RMSE, and R^2 for evaluation.
+We test multiple models to ensure that the strong baseline performance is not accidental and to confirm whether more flexible models offer any measurable improvement.
 
-Across OLS, Ridge, Lasso, and ElasticNet, the mean absolute error (MAE) remained tightly
-clustered around 166–167 (for example, `ols` MAE = 167.01, `rr_10` MAE = 166.72, `enet` MAE = 165.94),
-with root mean squared error (RMSE) $\approx 207$–$209$ and $R^2 \approx 0.78$. The choice of
-regularization strength had negligible effect, indicating that linear models, even with
-regularization, are unable to capture the underlying structure of the data and behave very
-similarly to each other. Introducing polynomial features with Ridge regression substantially
-improved performance: the degree-2 model (`prr2`) reduced MAE to 103.12 and the degree-3 model
-(`prr3`) further reduced MAE to 96.35, with $R^2$ increasing to 0.896 and 0.910, respectively. This
-confirms that non-linearity and feature interactions play a major role in predicting reimbursement.
 
-Tree-based methods improved results further. Single decision trees with depths between 5 and 50
-(`dt_5`, `dt_10`, `dt_25`, `dt_50`) achieved MAE in the 97–115 range and $R^2$ between 0.878 and 0.897,
-better than all linear baselines but worse than the polynomial models and ensembles. Random Forest models
-(`rf_6`, `rf_12`) yielded substantially lower errors, with MAE = 75.16 and 71.45, RMSE $\approx 112$–$113$,
-and $R^2 \approx 0.935$–0.936, and reduced mean absolute percentage error (MAPE) to about 6.7–6.9%.
-These results suggest that aggregating many shallow trees is an effective way to capture the non-linear,
-monotone relationships identified in the EDA.
 
-The best performance was obtained with Gradient Boosting. Several `GradientBoostingRegressor`
-configurations were evaluated, varying the number of trees, learning rate, tree depth, and subsampling fraction.
-The baseline configuration (`gbr_base`) achieved MAE = 70.11, RMSE = 110.16, and $R^2 = 0.939$. A slower-learning variant
-(`gbr_slow`) and a stochastic version with subsampling (`gbr_stochastic`) produced similar but slightly worse
-errors. The strongest model was a shallow configuration (`gbr_shallow`) with $n_\text{estimators} = 600$,
-`learning_rate = 0.03`, `max_depth = 2`, and `subsample = 1.0`, which achieved the lowest MAE (68.45), lowest
-RMSE (106.76), highest $R^2$ (0.943), and lowest MAPE (6.35%) among all candidates, while also reducing the 90th
-percentile absolute error to \$135.23. Overall, tree ensembles more than halved the MAE compared to any linear
-model and yielded consistently smaller high-percentile errors. Based on this dominance across all error metrics,
-`gbr_shallow` was selected as the final model and retrained it on the full dataset for deployment in the prediction service.
+# Load Data
+```{python}
+# Basic set up
+import pandas as pd
+import numpy as np
 
-### XGBoost experiments
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
+from sklearn.linear_model import LinearRegression
+from sklearn.ensemble import RandomForestRegressor
+from sklearn.ensemble import GradientBoostingRegressor
 
-To complement the scikit-learn tree ensembles, we also evaluated XGBoost using
-the `XGBRegressor` implementation from the `xgboost` library. We first trained
-a manually specified “default” model, and then performed hyperparameter tuning
-using `GridSearchCV` with MAE as the objective.
+# Load processed features 
+features = pd.read_csv("../data/features_processed.csv")
 
-The default configuration already performed competitively with the Random Forest
-baseline, but did not surpass the best Gradient Boosting model. After tuning, the
-XGBoost model achieved performance comparable to our strongest scikit-learn
-Gradient Boosting configuration.
+# Quick check to ensure the dataset loaded correctly
+features.head()
+features.shape
+```
 
-The table below summarizes the XGBoost results on the held-out test set.
+# Train-Test Split
+
+We predict the original reimbursement amount using the engineered features. 
 
 ```{python}
-import pandas as pd
+# Split the dataset into training and testing sets
+# We predict 'reimbursement_amount' using the engineered features.
+X = features.drop(columns=["reimbursement_amount"])
+y = features["reimbursement_amount"]
 
-xgb_metrics = pd.DataFrame([
-    ("xgb_default", 77.399, 114.586, 59.746, 0.934, 143.886, 939.891, 7.31),
-    ("xgb_tuned",   68.785, 105.153, 57.894, 0.944, 134.836, 966.782, 6.36),
-], columns=["model", "MAE", "RMSE", "MedAE", "R2", "P90", "MaxE", "MAPE"])
+X_train, X_test, y_train, y_test = train_test_split(
+    X, y, test_size=0.2, random_state=42
+)
+```
+```{python}
+#| eval: false
+# Linear Regression baseline model
+# (Executed in terminal to avoid reticulate crash)
+```
 
-xgb_metrics
+# Baseline Model: Linear Regression
+```{python}
+import numpy as np
+from sklearn.linear_model import LinearRegression
+from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
 
-Grid search was run over a small hyperparameter grid:
+# Create and fit the model
+lr = LinearRegression()
+lr.fit(X_train, y_train)
 
-- `n_estimators ∈ {300, 600}`
-- `learning_rate ∈ {0.03, 0.05}`
-- `max_depth ∈ {3, 4}`
-- `subsample ∈ {0.8, 1.0}`
-- `colsample_bytree ∈ {0.8, 1.0}`
+# Make predictions on the test set
+lr_preds = lr.predict(X_test)
 
-`GridSearchCV` with 5-fold cross-validation (160 fits in total) selected:
+# Evaluate model performance
+lr_mae = mean_absolute_error(y_test, lr_preds)
+lr_rmse = np.sqrt(mean_squared_error(y_test, lr_preds))
+lr_r2 = r2_score(y_test, lr_preds)
 
-- `n_estimators = 300`
-- `learning_rate = 0.03`
-- `max_depth = 3`
-- `subsample = 0.8`
-- `colsample_bytree = 1.0`
+# Clean formatted output
+print("Linear Regression performance:")
+print(f"  MAE : {lr_mae:.2f}")
+print(f"  RMSE: {lr_rmse:.2f}")
+print(f"  R²  : {lr_r2:.3f}")
+```
+Linear Regression provides a simple baseline by modeling a straight-line relationship between features and the target. This helps us understand whether the dataset is linearly predictable before testing more flexible models.
 
-with a best cross-validated MAE of approximately 81.80. When evaluated on the
-held-out test set, this tuned XGBoost model (`xgb_tuned`) achieved MAE = 68.79,
-RMSE = 105.15, $R^2 = 0.944$, and MAPE = 6.36%. These metrics are very close to
-those of the best scikit-learn Gradient Boosting model (`gbr_shallow`), which
-has MAE = 68.45, RMSE = 106.76, and $R^2 = 0.943$. Based on this comparison, we
-concluded that both boosted tree implementations capture essentially the same
-structure in the data; we retained `gbr_shallow` as the primary final model for
-consistency with the rest of the scikit-learn pipeline, while also saving the
-tuned XGBoost model to `models/final_model_xgb.pkl` for reference.
+# Random Forest Model
+```{python}
+from sklearn.ensemble import RandomForestRegressor
 
-## SHAP-based model interpretation
+# Create and train the model
+rf = RandomForestRegressor(
+    n_estimators=300,
+    random_state=42
+)
+rf.fit(X_train, y_train)
 
-To interpret the final Gradient Boosting model beyond global metrics, we used
-SHAP (SHapley Additive exPlanations), a game-theoretic approach that attributes
-each prediction to individual input features. For tree-based models, SHAP's
-`TreeExplainer` efficiently computes Shapley values that quantify how much each
-feature pushes the prediction above or below a baseline (the mean prediction).
+# Predictions
+rf_preds = rf.predict(X_test)
+
+# Evaluation
+rf_mae = mean_absolute_error(y_test, rf_preds)
+rf_rmse = np.sqrt(mean_squared_error(y_test, rf_preds))
+rf_r2 = r2_score(y_test, rf_preds)
+
+print("Random Forest performance:")
+print(f"  MAE:  {rf_mae:.2f}")
+print(f"  RMSE: {rf_rmse:.2f}")
+print(f"  R²:   {rf_r2:.3f}")
+```
+Random Forest uses many decision trees and averages their predictions. This helps reduce variance and capture non-linear patterns that linear models may miss.
+
+# Gradient Boosting Model
+```{python}
+from sklearn.ensemble import GradientBoostingRegressor
+
+gbr = GradientBoostingRegressor(
+    learning_rate=0.05,
+    n_estimators=200,
+    max_depth=3,
+    random_state=42
+)
+
+gbr.fit(X_train, y_train)
+gbr_preds = gbr.predict(X_test)
+
+# Evaluation
+gbr_mae = mean_absolute_error(y_test, gbr_preds)
+gbr_rmse = np.sqrt(mean_squared_error(y_test, gbr_preds))
+gbr_r2 = r2_score(y_test, gbr_preds)
+
+print("Gradient Boosting performance:")
+print(f"  MAE:  {gbr_mae:.2f}")
+print(f"  RMSE: {gbr_rmse:.2f}")
+print(f"  R²:   {gbr_r2:.3f}")
+
+```
+Gradient Boosting trains trees sequentially, where each new tree focuses on correcting the errors of the previous ones. This often leads to strong performance on structured datasets.
+
+# Compare All Models In One Table
+```{python}
+results = pd.DataFrame({
+    "Model": ["Linear Regression", "Random Forest", "Gradient Boosting"],
+    "MAE":   [lr_mae, rf_mae, gbr_mae],
+    "RMSE":  [lr_rmse, rf_rmse, gbr_rmse],
+    "R²":    [lr_r2, rf_r2, gbr_r2]
+})
+
+results
+
+```
+
+# Visualization
+```{python}
+import matplotlib.pyplot as plt
+
+plt.scatter(y_test, rf_preds, alpha=0.6)
+plt.xlabel("Actual")
+plt.ylabel("Predicted")
+plt.title("Random Forest: Actual vs Predicted")
+plt.grid(True)
+plt.show()
+```
+
+# Model Evaluation Summary
+
+Overall, all three models (Linear Regression, Random Forest, Gradient Boosting) achieve strong predictive performance, but on different levels. The tree-based models, particularly Gradient Boosting, show the highest accuracy with R^2 values around 0.97 and relatively low MAE and RMSE. Linear Regression performs reasonalbly well but does not capture as much of the variability as the ensemble models. This shows that the relationship between the engineered features and the reimbursement amount contains nonlinear patterns that the ensemble models are able to capture more effectively. 
+
+Linear Regression provides a useful baseline, but its lower R^2 value (0.86) indicates that it cannot fully model the underlying complexity of the legacy reimbursement system. The improvement from Linear Regression to the tree-based models suggests that the system's rules are not purely linear and that more flexible models are needed to represent its behavior. 
+
+Based on these findings, Gradient Boosting and Random Forest offer the most stable and accurate performance. Linear Regression is still valuable as a reference model, but the ensemble methods better reflect the structure and variablity present in the data. 
+
+Although the models reach high accuracy, this does not gurantee that they fully reconstruct the undocumented business logic of the legacy system. Some of the strong performance may result from deterministic patterns in the engineered features, so interpretability checks are required to validate that the model's decisions align with domain expectations. 
+
+Since the more complex models demonstrate noticeably better accuracy than Linear Regression, we treat Gradient Boosting and Random Forest as robust checks to confirm that the relationship between features and reimbursement amount is stable. Linear Regression remains useful as a simpler baseline, but the ensemble models better capture the underlying structure of the legacy system. 
+
+
+ 
+# Note on polynomial/interaction features
+
+We briefly considered adding polynomial or interaction terms (for example squared mileage or interactions between miles and receipts). However, the tree-based models already capture nonlinear patterns automatically, and both Random Forest and Gradient Boosting achieve high accuracy eithout requiring additional engineered nonlinear features.
+
+While adding polynomial terms might help Linear Regression slightly, it would also increase model complexity and reduce interpretability. Since the ensemble models already learn these relationships effectively and outperform the linear model, introducing extra polynomial or interaction features was not necessary for achieving strong predictive performance. 
+
+# Export Final Model
+ 
+```{python}
+import joblib
+# choose final model (here Linear Regression because the results are equivalent to RF and GBM)
+final_model = lr
+joblib.dump(final_model, "../models/final_model.pkl")
+print("Model saved as final_model.pkl")
+```
+
+
+
 

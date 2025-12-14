@@ -112,13 +112,28 @@ for col in num_cols:
     plt.title(f"Outliers in {col}")
     plt.show()
 ```
-Outliers in trip_duration_days: a few trips extend to the maximum of 14 days, indicating possible special corporate assignments.
-Outliers in miles_traveled: long-distance outliers (>1200 miles) are present, likely representing air travel or multi-state trips.
-Outliers in total_receipts_amount: high-receipt outliers (>2000) suggest multi-category expenses or longer durations.
-Outliers in reimbursement_amount: reimbursement outliers match the receipt and mileage outliers, confirming consistency in the reimbursement rules.
+ - Outliers in trip_duration_days: a few trips extend to the maximum of 14 days, indicating possible special corporate assignments.
+
+- Outliers in miles_traveled: long-distance outliers (>1200 miles) are present, likely representing air travel or multi-state trips.
+
+- Outliers in total_receipts_amount: high-receipt outliers (>2000) suggest multi-category expenses or longer durations.
+
+- Outliers in reimbursement_amount: reimbursement outliers match the receipt and mileage outliers, confirming consistency in the reimbursement rules.
+
+
 ```{python}
 df.columns
 ```
+
+```{python}
+plt.figure(figsize=(6,5))
+sns.scatterplot(data=features, x="miles_traveled", y="reimbursement_amount")
+plt.title("Mileage vs Reimbursement Amount")
+plt.show()
+
+```
+
+Although the dataset contains several high-value cases in miles, receipts, and reimbursement, these points should not be removed. They represent legitimate long-distance or high-cost trips rather than data errors. Since ACME's legacy system computes reimbursements for all travel events, including extreme or unusual ones, these outliers are essential or accurately replicating the system's true behavior. 
 
 # Summary of Findings
 
@@ -133,6 +148,8 @@ Overall, this exploratory analysis suggests that:
 - Trip duration has a weaker direct relationship with reimbursement, which hints that ACME’s policy is more cost-based than time-based. 
 
 - Outliers in distance, receipts, and reimbursement appear to reflect legitimate high-cost or long-distance trips rather than data quality problems. 
+
+- The consistency of reimbursement calculations even at extreme values suggests that the legacy system does not apply caps, filters, or strong input validation on the raw data. 
 
 - These patterns provide a clear basis for the next step: building and evaluating predictive models that estimate reimbursement amounts from trip characteristics.
 
