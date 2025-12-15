@@ -164,16 +164,13 @@ plt.show()
 
 # Model Evaluation Summary
 
-Overall, all three models (Linear Regression, Random Forest, Gradient Boosting) achieve strong predictive performance, but on different levels. The tree-based models, particularly Gradient Boosting, show the highest accuracy with R^2 values around 0.97 and relatively low MAE and RMSE. Linear Regression performs reasonalbly well but does not capture as much of the variability as the ensemble models. This shows that the relationship between the engineered features and the reimbursement amount contains nonlinear patterns that the ensemble models are able to capture more effectively. 
+All three models demnostrate strong predictive performance, but clear differences emerge when comparing their accuracy and flexibility. Linear Regression performs resonably well as a baseline model, achieving an R^2 of approximately 0.86, but it does not capture the full complexity of the reimbursement data. 
 
-Linear Regression provides a useful baseline, but its lower R^2 value (0.86) indicates that it cannot fully model the underlying complexity of the legacy reimbursement system. The improvement from Linear Regression to the tree-based models suggests that the system's rules are not purely linear and that more flexible models are needed to represent its behavior. 
+The tree-based models, particularly Gradient Boosting, achieve higher accuracy with R^2 values around 0.97 and lower MAE and RMSE. This improvement indicates that the relationship between the engineered features and reimbursement amount is not purely linear and contains meaningful nonlinear patterns. 
 
-Based on these findings, Gradient Boosting and Random Forest offer the most stable and accurate performance. Linear Regression is still valuable as a reference model, but the ensemble methods better reflect the structure and variablity present in the data. 
+Random Forest and Gradient Boosting both model these nonlinear relationships effectively. Among them, Gradient Boosting provides the most stable and accurate results, making it the best overall choice for approximating the legacy reimbursement system. 
 
-Although the models reach high accuracy, this does not gurantee that they fully reconstruct the undocumented business logic of the legacy system. Some of the strong performance may result from deterministic patterns in the engineered features, so interpretability checks are required to validate that the model's decisions align with domain expectations. 
-
-Since the more complex models demonstrate noticeably better accuracy than Linear Regression, we treat Gradient Boosting and Random Forest as robust checks to confirm that the relationship between features and reimbursement amount is stable. Linear Regression remains useful as a simpler baseline, but the ensemble models better capture the underlying structure of the legacy system. 
-
+While Linear Regression remains useful as a simple reference model, the performance of Gradient Boosting suggests that a more flexible approach is necessary to reflect the structure and rules embedded in the historical reimbursement data. Interpretability analysis is therefore used in the next section to ensure that the model's behavior aligns with the expections set.  
 
  
 # Note on polynomial/interaction features
@@ -186,8 +183,8 @@ While adding polynomial terms might help Linear Regression slightly, it would al
  
 ```{python}
 import joblib
-# choose final model (here Linear Regression because the results are equivalent to RF and GBM)
-final_model = lr
+# choose final model (here Gradient boosting due to performance)
+final_model = gbr
 joblib.dump(final_model, "../models/final_model.pkl")
 print("Model saved as final_model.pkl")
 ```
