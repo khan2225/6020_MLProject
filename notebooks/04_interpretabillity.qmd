@@ -10,7 +10,7 @@ format:
 
 # Introduction
 
-The goal of this section is to understand how the trained models make predictions and to check whether the model behavior aligns with the patterns observed during EDA.
+The goal of this section is to understand how the final Gradient Boosting model make predictions and to check whether the model behavior aligns with the patterns observed during EDA.
 
 Interpretability also helps confirm that the model is using features in a reasonable way and that its errors do not follow any strong pattern.
 
@@ -100,7 +100,8 @@ plt.show()
 
 ```
 Higher values mean the feature had a stronger effect on predictions.
-We compare this ordering with what we saw during EDA to see if the model uses features logically.
+
+Random Forest feature importance is shown here as a supporting comparison to check consistency across tree-based models. 
 
 ## Gradient Boosting Feature Importance
 ```{python}
@@ -122,9 +123,9 @@ plt.show()
 
 ```
 Gradient Boosting usually focuses on fewer strong predictors.
-If both models highlight similar features,that increases confidence.
+If both models highlight similar features,this increases confidence in the stability of the learned relationships.
 
-Because several features are derived from the same base variables such as raw and scaled receipt amounts, feature importance values should be interpreted in relation to one another rather than individually. 
+Because several features are derived from the same underlying variables such as raw and scaled receipt amounts, feature importance values should be interpreted in relation to one another rather than individually. 
 
 # Partial Dependence Plots (PDPs)
 PDPs help show how the prediction changes when we vary one feature while keeping other constant.
@@ -145,7 +146,7 @@ The PDPs show that predicted reimbursement increases clearly as total receipt am
 
 Mileage and trip duration exhibit more gradual, monotonic effects, indicating that they contribute to reimbursement but have a lesser of a role compared to receipts. 
 
-These trends are consistent with observations made from the EDA and employee interviews, suggesting that the model is learning consistent reimbursement rules  structured reimbursement rules rather than random or misleading relationships.
+These trends are consistent with observations made from the EDA and employee interviews, suggesting that the Gradient Boosting model is learning structured reimbursement rules rather than random or misleading relationships.
 
 # Actual vs Predicted 
 This tells us how close model predictions are to the real test values.
@@ -164,7 +165,7 @@ plt.show()
 ```
 Most points follow a diagonal pattern, showing that the predicted reimbursement values are generally close to the actual values. 
 
-There is more variation for higher reimbursement amounts, which is expected for longer or more expensive trips. Overall, the model shows strong predictive performance without clear bias. 
+There is more variation for higher reimbursement amounts, which is expected for longer or more expensive trips. Overall, the Gradient Boosting model shows strong predictive performance without clear bias. 
 
 # Residual Distribution + Residuals vs Predictions
 
@@ -196,10 +197,10 @@ A slightly wider spread for higher reimbursement values suggest increased uncert
 
 # Summary
 
-Overall, the interpretability results are consistent with what we observed during EDA. The model mainly relies heavily on receipt-related features, with trip duration and mileage providing play supporting roles, which matches how reimbursement decisions are expected to work.
+Overall, the interpretability results are consistent with what we observed during EDA and modeling stages. The Gradient Boosting model relies heavily on receipt-related features, with trip duration and mileage providing play supporting roles, which matches how reimbursement decisions are expected to work.
 
 Feature importance and partial dependence plots confirm that the model behaves logically and structured way, rather than fitting random noise in the data. The residual analysis also show no clear bias or error patterns. 
 
-Together, these findings suggest that the final model is both reliable and easy to interpret, and that it provides a conjecture of how the legacy reimbursement system works and its behavior. 
+Together, these findings suggest that the final model is both accurate and easy to interpret, and that it provides a conjecture of how the legacy reimbursement system works and its behavior. 
 
 
