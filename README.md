@@ -102,13 +102,13 @@ By completing this project, we aim to:
 - Python 3.9+
 - Required packages: `numpy`, `pandas`, `scikit-learn`, `xgboost`, `shap`, `joblib`, `pyyaml`
 
-**Setup:**
+### **Setup:**
 - 
-**Run Modeling:**
+### **Run Modeling:**
 - 
-**Run XGBoost:** 
+### **Run XGBoost:** 
 - 
-**Run SHAP analysis:**
+### **Run SHAP analysis:**
 - 
 
 ### Viewing Analysis Results
