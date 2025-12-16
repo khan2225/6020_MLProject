@@ -4,8 +4,10 @@ author: "Harriet O'Brien, Vy Tran, Saniyah Khan, Rehinatu Usman"
 format: 
     html:
         toc: true
+        toc-location: right
         number-sections: true
         theme: cosmo
+        self-contained: true
 execute:
     python:
         reticulate: false
