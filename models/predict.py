@@ -106,7 +106,10 @@ class BuildModels:
 
     @staticmethod
     def read_yaml():
-        with open("pipelines.yaml", "r") as file:
+        # Resolve pipelines.yaml relative to this file
+        here = Path(__file__).resolve().parent
+        yaml_path = here / "pipelines.yaml"
+        with open(yaml_path, "r") as file:
             pldict = yaml.safe_load(file)
         return pldict
 
