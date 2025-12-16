@@ -109,7 +109,19 @@ By completing this project, we aim to:
 ### **Run XGBoost:** 
 - 
 ### **Run SHAP analysis:**
-- 
+
+### Data Science Workflow
+The data science portion of this project is implemented using Jupyter notebooks.
+
+To reproduce the modeling and analysis results, run the notebooks in the following order:
+
+1. 01_eda.ipynb– Exploratory data analysis and initial data inspection  
+2. 02_feature_engineering.ipynb – Feature creation and preprocessing  
+3. 03_models.ipynb – Model training and performance comparison  
+4. 04_interpretability.ipynb – Model interpretation and validation
+   
+Each notebook can be run sequentially without additional configuration.
+The final trained model is exported as final_model.pkl for downstream use.
 
 ### Viewing Analysis Results
 All analysis has been pre-rendered as HTML files for convience. 
