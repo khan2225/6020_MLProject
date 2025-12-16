@@ -96,6 +96,30 @@ By completing this project, we aim to:
 
 ---
 
+# How to Run This Project 
+
+### **Environment:**
+- Python 3.9+
+- Required packages: `numpy`, `pandas`, `scikit-learn`, `xgboost`, `shap`, `joblib`, `pyyaml`
+
+**Setup:**
+- 
+**Run Modeling:**
+- 
+**Run XGBoost:** 
+- 
+**Run SHAP analysis:**
+- 
+
+### Viewing Analysis Results
+All analysis has been pre-rendered as HTML files for convience. 
+
+To view the analysis:
+1. Download or clone the repository.
+2. Navigate to the `notebooks/` folder.
+3. Open any `.html` file directly in a web browser.
+
+ No additional setup or execution of Quarto (`.qmd`) files is required to view results. 
 
 
 
