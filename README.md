@@ -139,3 +139,5 @@ The Business Logic Hypothesis is provided as a pre-rendered HTML document for ea
 
 The corresponding `.qmd` file is included in the repository for more viewing as well. 
 
+## Presentation and Final Report
+These are located in the reports folder in the Git repository. 
