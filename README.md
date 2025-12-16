@@ -110,7 +110,7 @@ By completing this project, we aim to:
 - 
 ### **Run SHAP analysis:**
 
-### Data Science Workflow
+## Data Science Workflow
 The data science portion of this project is implemented using Jupyter notebooks.
 
 To reproduce the modeling and analysis results, run the notebooks in the following order:
@@ -123,15 +123,10 @@ To reproduce the modeling and analysis results, run the notebooks in the followi
 Each notebook can be run sequentially without additional configuration.
 The final trained model is exported as final_model.pkl for downstream use.
 
-### Viewing Analysis Results
-All analysis has been pre-rendered as HTML files for convience. 
-
-To view the analysis:
-1. Download or clone the repository.
-2. Navigate to the `notebooks/` folder.
-3. Open any `.html` file directly in a web browser.
-
- No additional setup or execution of Quarto (`.qmd`) files is required to view results. 
+## Business Logic Hypothesis 
+The Business Logic Hypothesis is provided as a pre-rendered HTML document for ease of viewing. 
 
 [View Business Logic](https://khan2225.github.io/6020_MLProject/reports/business_logic_hypothesis.html)
+
+The corresponding `.qmd` file is included in the repository for more viewing as well. 
 
