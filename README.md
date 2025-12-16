@@ -133,5 +133,5 @@ To view the analysis:
 
  No additional setup or execution of Quarto (`.qmd`) files is required to view results. 
 
-[View Business Logic](reports/business_logic_hypothesis.html)
+[View Business Logic](https://khan2225.github.io/6020_MLProject/reports/business_logic_hypothesis.html)
 
