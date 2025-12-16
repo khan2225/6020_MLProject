@@ -112,8 +112,17 @@ By completing this project, we aim to:
 
 ## Data Science Workflow
 The data science portion of this project is implemented using Jupyter notebooks.
+Here are the pre-rendered HTML document for ease of viewing, please click to view. 
 
-To reproduce the modeling and analysis results, run the notebooks in the following order:
+[View Exploratory Data Analysis](https://khan2225.github.io/6020_MLProject/notebooks/01_eda.html)
+
+[View Feature Engineering](https://khan2225.github.io/6020_MLProject/notebooks/02_feature_engineering.html)
+
+[View Models](https://khan2225.github.io/6020_MLProject/notebooks/03_models.html)
+
+[View Interpretability](https://khan2225.github.io/6020_MLProject/notebooks/04_interpretabillity.html)
+
+To also reproduce the modeling and analysis results, run the notebooks in the following order:
 
 1. 01_eda.ipynb– Exploratory data analysis and initial data inspection  
 2. 02_feature_engineering.ipynb – Feature creation and preprocessing  
