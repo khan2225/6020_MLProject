@@ -1,0 +1,1004 @@
+\documentclass[11pt]{article}
+
+\usepackage[margin=1in]{geometry}
+\usepackage{subcaption}
+\usepackage{amsmath, amssymb}
+\usepackage{siunitx}
+\usepackage{graphicx}
+\usepackage[hidelinks]{hyperref}
+\usepackage{setspace}
+\onehalfspacing
+\usepackage[table]{xcolor}
+\usepackage{booktabs}
+\usepackage{color}
+\definecolor{linclr}{RGB}{230,240,255}
+\definecolor{polyclr}{RGB}{242,230,255}
+\definecolor{dtclr}{RGB}{255,245,230}
+\definecolor{rfclr}{RGB}{230,250,230}
+\definecolor{gbrclr}{RGB}{255,240,240}
+
+\sisetup{
+  detect-all,
+  round-mode=places,
+  round-precision=2
+}
+
+\title{Reverse–Engineering a Legacy Travel Reimbursement Engine\\
+Using Supervised Machine Learning}
+\author{%
+  Harriet O'Brien \and
+  Saniyah Khan \and
+  Vy Tran \and
+  Rehinatu Usman}
+\date{\today}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+Many organizations rely on legacy software systems to compute employee
+travel reimbursements, often based on complex and poorly documented rule
+sets. These systems can be difficult to audit, maintain, or migrate to
+modern platforms. In this project, we treat a legacy reimbursement engine
+as a black box and use supervised regression models to approximate its
+behavior. The model takes the same three descriptive inputs as the
+original system (trip duration, miles traveled, and total receipts) and
+predicts the reimbursement amount. We construct an engineered feature set,
+evaluate a wide family of linear and tree-based models, tune gradient
+boosting and XGBoost ensembles, and interpret the resulting models using
+feature importance, partial dependence, and SHAP value analysis. Our best
+model, a shallow Gradient Boosting Regressor, achieves a mean absolute
+error (MAE) of approximately \$68 on a held-out test set and explains over
+94\% of the variance in reimbursements, providing a practical and
+interpretable surrogate for the legacy engine.
+\end{abstract}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Introduction}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+Organizations that reimburse employee travel typically rely on a set of
+detailed business rules: per-diem rates, mileage allowances, caps on
+hotel costs, rules for partial days, and so on. In many cases those rules
+have accumulated inside a legacy software system that ``just works,'' even
+though the people who originally implemented it are no longer available
+and the code base is difficult to maintain or migrate. Our project is set
+in exactly this context.
+
+Access to a legacy travel-reimbursement engine was available only through
+its inputs and outputs. For each historical case, the system received
+three descriptive inputs:
+\begin{itemize}
+  \item the total number of days the trip lasted
+        (\texttt{trip\_duration\_days}),
+  \item the total number of miles traveled (\texttt{miles\_traveled}), and
+  \item the total dollar value of all submitted receipts
+        (\texttt{total\_receipts\_amount}),
+\end{itemize}
+and produced a single numeric reimbursement amount. Internally, the engine
+may apply a complex combination of rules, but those rules are not
+documented in a form that can easily be re-implemented in a modern system.
+
+From a business perspective, this poses several problems. The legacy
+system is a single point of failure: if it becomes unstable or has to be
+retired, the organization risks losing the ability to process
+reimbursements consistently. The code is also difficult to audit. Finance
+and HR staff can see what the system pays out, but they cannot easily
+explain why two similar trips sometimes receive different reimbursements.
+That lack of transparency undermines employee trust and makes it harder to
+defend reimbursement decisions in the face of internal or external
+scrutiny. Finally, the legacy platform limits future integration with
+other systems (for example, modern expense-reporting tools or analytics
+dashboards) because its logic cannot simply be plugged in elsewhere.
+
+The goal of our project is therefore to approximate the behavior of the
+legacy engine with a modern, data-driven model that takes exactly the same
+three inputs and produces a reimbursement amount that closely matches what
+the original system would have returned. The model must be accurate enough
+for practical use, fast enough to run as a small script, and interpretable
+enough that we can explain its behavior to non-technical stakeholders. In
+short, we treat the legacy engine as a black box and attempt to
+reverse-engineer its mapping from trip characteristics to reimbursement
+using supervised machine learning.
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Data Description}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Raw data source and structure}
+
+The starting point for our project is a JSON file containing 1{,}000
+historical reimbursement records from a legacy travel reimbursement system.
+Each record is a small JSON object with two keyheads:
+\texttt{input} and \texttt{expected\_output}. The
+\texttt{input} object has three descriptive fields:
+\begin{itemize}
+  \item \texttt{trip\_duration\_days}: integer number of days for the trip;
+  \item \texttt{miles\_traveled}: total miles traveled during the trip;
+  \item \texttt{total\_receipts\_amount}: total dollar amount of all
+ receipts submitted for the trip.
+\end{itemize}
+The \texttt{expected\_output} field is a single numeric value that
+represents the amount of reimbursement produced by the legacy system for that case.
+
+To facilitate analysis and modeling, the JSON data were flattened into a
+rectangular tabular structure using \texttt{pandas.json\_normalize}. The
+nested keys were assigned to the top-level column names and
+\texttt{expected\_output} was renamed to
+\texttt{reimbursement\_amount} to make its role as the target variable
+explicit. This yielded an initial four-column data frame with the
+following columns:
+\begin{itemize}
+  \item \texttt{trip\_duration\_days}
+  \item \texttt{miles\_traveled}
+  \item \texttt{total\_receipts\_amount}
+  \item \texttt{reimbursement\_amount}.
+\end{itemize}
+
+\subsection{Variables and descriptive statistics}
+
+All four variables are continuous or discrete numeric quantities. Summary
+statistics for the raw dataset are as follows (all counts are 1{,}000):
+
+\paragraph{Reimbursement amount (\texttt{reimbursement\_amount}).}
+Mean $\approx \SI{1349.11}{}$, standard deviation
+$\approx \SI{470.32}{}$, minimum \SI{117.24}{}, 25th percentile
+\SI{1019.30}{}, median \SI{1454.26}{}, 75th percentile \SI{1711.12}{},
+and maximum \SI{2337.73}{}. These values are plausible for business travel
+reimbursements and indicate substantial variation between trips.
+
+\paragraph{Trip duration (\texttt{trip\_duration\_days}).}
+Mean $\approx 7.04$ days, standard deviation $\approx 3.93$ days, and
+range from 1 to 14 days. Trips range from single-day local travel to
+longer trips of approximately two weeks.
+
+\paragraph{Distance traveled (\texttt{miles\_traveled}).}
+Mean $\approx \SI{597.41}{}$ miles, standard deviation
+$\approx \SI{351.30}{}$ miles, and range from \SI{5}{} to
+\SI{1317}{} miles, reflecting both short- and long-distance travel.
+
+\paragraph{Total receipts (\texttt{total\_receipts\_amount}).}
+Mean $\approx \$1{,}211.06$, standard deviation
+$\approx \$742.85$, and range from \$1.42 to \$2{,}503.46.
+This wide spread reflects differences in trip length, lodging, and other
+expenses.
+
+Overall, the ranges are consistent with typical business travel: trips
+vary in duration, distance, and spending in ways that a reimbursement
+engine would be expected to handle.
+
+\subsection{Processed feature set}
+
+For modeling, the team constructed a processed feature table,
+\texttt{features\_processed.csv}, with 11 columns. This table includes the
+original three input variables, the target, several engineered features,
+and standardized versions of selected variables:
+
+\begin{itemize}
+  \item Original inputs:
+    \begin{itemize}
+      \item \texttt{trip\_duration\_days}
+      \item \texttt{miles\_traveled}
+      \item \texttt{total\_receipts\_amount}
+    \end{itemize}
+  \item Target:
+    \begin{itemize}
+      \item \texttt{reimbursement\_amount}
+    \end{itemize}
+  \item Engineered features:
+    \begin{itemize}
+      \item \texttt{cost\_per\_mile}
+      \item \texttt{cost\_per\_day}
+      \item \texttt{receipts\_ratio}
+      \item \texttt{miles\_per\_day}
+    \end{itemize}
+  \item Scaled features:
+    \begin{itemize}
+      \item \texttt{miles\_traveled\_scaled}
+      \item \texttt{total\_receipts\_amount\_scaled}
+      \item \texttt{trip\_duration\_days\_scaled}
+    \end{itemize}
+\end{itemize}
+
+The engineered features are designed to capture intuitive quantities such
+as per-mile and per-day reimbursement rates and the relationship between
+claimed receipts and reimbursed amounts.
+
+\begin{figure}[htbp]
+    \centering
+    \begin{subfigure}{0.48\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{figures/eda_hist_trip_duration_days.png}
+        \caption{Distribution of \texttt{trip\_duration\_days}.}
+        \label{fig:hist-trip-duration}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}{0.48\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{figures/eda_hist_miles_traveled.png}
+        \caption{Distribution of \texttt{miles\_traveled}.}
+        \label{fig:hist-miles}
+    \end{subfigure}
+
+    \vspace{0.5em}
+
+    \begin{subfigure}{0.48\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{figures/eda_hist_total_receipts_amount.png}
+        \caption{Distribution of \texttt{total\_receipts\_amount}.}
+        \label{fig:hist-receipts}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}{0.48\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{figures/eda_hist_reimbursement_amount.png}
+        \caption{Distribution of \texttt{reimbursement\_amount}.}
+        \label{fig:hist-reimbursement}
+    \end{subfigure}
+
+    \caption{Marginal distributions of the three input variables and the reimbursement outcome. All variables show reasonably well–behaved distributions with only mild outliers, supporting the use of standard regression models without heavy preprocessing.}
+    \label{fig:eda-marginals}
+\end{figure}
+
+Figure~\ref{fig:eda-marginals} shows the marginal distributions of the three input variables and the reimbursement amounts. Trip durations range from 1 to 14 days with a fairly even spread; mileage and total receipts span a wide but plausible business-travel range; and reimbursement amounts are concentrated between roughly \$1{,}000 and \$2{,}000 with a smooth, unimodal shape. None of the variables exhibit extreme skew or pathological outliers, so standard regression methods are appropriate.
+
+\subsection{Correlation Structure Before and After Feature Engineering}
+
+\begin{figure}[htbp]
+    \centering
+    % Raw correlation heatmap
+    \begin{subfigure}{0.48\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{figures/eda_corr_raw.png}
+        \caption{Raw inputs only}
+        \label{fig:corr_raw}
+    \end{subfigure}
+    \hfill
+    % Correlation after feature engineering
+    \begin{subfigure}{0.48\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{figures/eda_corr_fe.png}
+        \caption{After feature engineering}
+        \label{fig:corr_fe}
+    \end{subfigure}
+    \caption{Correlation structure before (left) and after (right) feature engineering.
+    The engineered variables preserve the strong relationships between reimbursement
+    and total receipts / trip duration while introducing additional, interpretable
+    dimensions such as cost per day and cost per mile.}
+    \label{fig:corr_comparison}
+\end{figure}
+
+The raw Pearson correlation matrix in Figure~\ref{fig:corr_raw} shows that reimbursement is positively associated with all three inputs, with the strongest relationship to total receipts ($\rho \approx 0.70$), followed by the duration of the trip ($\rho \approx 0.51$) and the miles traveled ($\rho \approx 0.43$). This pattern is consistent with a rule set in which the engine reacts primarily to documented spending, with duration and mileage providing a complementary context.
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=0.9\textwidth]{figures/eda_pairplot_raw.png}
+  \caption{Scatter-matrix of the three input variables and
+  \texttt{reimbursement\_amount}. The plot confirms monotone, mostly
+  smooth relationships between each input and the reimbursement outcome.}
+  \label{fig:eda-pairplot}
+\end{figure}
+
+
+The scatter-matrix in Figure~\ref{fig:eda-pairplot} confirms that reimbursement increases monotonically with each input. The relationship with receipts is close to linear but shows some curvature and increasing spread at higher reimbursement values, hinting at nonlinear effects and mild heteroskedasticity that linear models alone may struggle to capture.
+
+
+To understand how the three descriptive inputs jointly relate to the reimbursement result,
+we first calculated a Pearson correlation matrix over the raw variables
+(trip\_duration\_days, miles\_traveled, total\_receipts\_amount, reimbursement\_amount),
+shown in Figure~\ref{fig:corr_comparison}\subref{fig:corr_raw}.
+The raw heat map confirms that reimbursement\_amount is more strongly correlated with
+total\_receipts\_amount ($\rho \approx 0.70$), with moderate correlations with
+trip\_duration\_days ($\rho \approx 0.51$) and miles\_traveled ($\rho \approx 0.43$).
+The relatively weak correlation between miles\_traveled and the other inputs suggests
+that miles contribute complementary, but not dominant, information.
+
+After feature engineering, we recompute the correlation matrix that includes the derived
+variables cost\_per\_mile, cost\_per\_day, receipts\_ratio, miles\_per\_day and the
+standardized inputs (Figure~\ref{fig:corr_comparison}\subref{fig:corr_fe}).
+As expected, each scaled feature is perfectly correlated with its raw counterpart,
+confirming that scaling changes only magnitude, not information content.
+The engineered features reveal an additional structure: cost\_per\_day and
+total\_receipts\_amount both show a strong positive association with reimbursement\_amount,
+while miles\_per\_day behave as a distinct dimension ``intensity'' that is only weakly
+correlated with trip duration.
+These patterns support our modeling choice to include both raw and engineered features,
+and they foreshadow the later result that models exploiting nonlinear interactions
+between receipts, duration, and mileage achieve substantially lower prediction error
+than purely linear baselines.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Data Cleaning and Preprocessing}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Parsing and column renaming}
+
+The nested JSON structure was transformed into a tabular data frame using
+\texttt{pandas.json\_normalize}. During this step,
+\texttt{input.trip\_duration\_days},
+\texttt{input.miles\_traveled}, and
+\texttt{input.total\_receipts\_amount} were assigned to
+\texttt{trip\_duration\_days}, \texttt{miles\_traveled}, and
+\texttt{total\_receipts\_amount}, respectively, and
+\texttt{expected\_output} was renamed reimbursement
+\texttt{\_amount}. All fields were explicitly cast to numeric
+types to avoid issues with string-encoded numbers during modeling.
+
+\subsection{Missing values and basic quality checks}
+
+Column-wise completeness checks showed that all four raw variables have
+1{,}000 non-missing entries and no NaN values. The same check on the
+processed feature table confirmed that all 11 columns in
+\texttt{features\_processed.csv} also contain 1{,}000 valid entries.
+
+Plausibility checks enforced the following:
+\begin{itemize}
+  \item \texttt{trip\_duration\_days} is between 1 and 14;
+  \item \texttt{miles\_traveled} is positive and between 5 and 1{,}317;
+  \item \texttt{total\_receipts\_amount} is positive and at most
+        \$2{,}503.46;
+  \item \texttt{reimbursement\_amount} is positive and of similar order of
+        magnitude as receipts.
+\end{itemize}
+No obviously invalid records (negative values, zero-day or zero-distance
+trips) were detected, so no rows were removed.
+
+\subsection{Feature engineering}
+
+To better approximate the behavior of the reimbursement system, several
+derived features were created from the original variables.
+
+\paragraph{Cost per mile (\texttt{cost\_per\_mile}).}
+For trip $i$,
+\[
+  \text{cost\_per\_mile}_i
+  =
+  \frac{\text{reimbursement\_amount}_i}
+       {\text{miles\_traveled}_i}.
+\]
+This captures an effective per-mile reimbursement rate. In the processed
+data, \texttt{cost\_per\_mile} has a mean $\approx 6.35$,
+a standard deviation $\approx 20.50$, and values ranging from roughly
+$0.36$ to $322.05$.
+
+\paragraph{Cost per day (\texttt{cost\_per\_day}).}
+For trip $i$,
+\[
+  \text{cost\_per\_day}_i
+  =
+  \frac{\text{reimbursement\_amount}_i}
+       {\text{trip\_duration\_days}_i}.
+\]
+This approximates an effective per-diem reimbursement and can reveal
+implicit daily caps or thresholds. The distribution spans roughly
+\$54.63 to \$1{,}475.40, with a mean of about \$284.71.
+
+\paragraph{Receipts ratio (\texttt{receipts\_ratio}).}
+\[
+  \text{receipts\_ratio}_i
+  =
+  \frac{\text{total\_receipts\_amount}_i}
+       {\text{reimbursement\_amount}_i}.
+\]
+This indicates how closely reimbursements track submitted receipts.
+Values near $1$ suggest close tracking, values above $1$ indicate that
+receipts exceed reimbursement (possible non-reimbursable items), and
+values below $1$ indicate cases where reimbursement exceeds receipts
+(e.g., per-diem rules). Observed values range from approximately $0.0039$
+to $7.21$, with a mean around $0.86$.
+
+\paragraph{Miles per day (\texttt{miles\_per\_day}).}
+\[
+  \text{miles\_per\_day}_i
+  =
+  \frac{\text{miles\_traveled}_i}
+       {\text{trip\_duration\_days}_i}.
+\]
+This measures the intensity of travel. The values range from $0.5$ to
+$1{,}166$ miles per day, with a mean of around $147.03$, capturing both short
+high-mileage trips and longer and more moderate itineraries.
+
+These engineered features provide more interpretable quantities that are
+close to how a human analyst would think about fair reimbursement and give
+the model additional structure beyond the raw inputs.
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.9\textwidth]{figures/eda_corr_fe.png}
+    \caption{Correlation matrix including raw variables, engineered features (\texttt{cost\_per\_mile}, \texttt{cost\_per\_day}, \texttt{receipts\_ratio}, \texttt{miles\_per\_day}), and standardized versions of the inputs. As expected, each raw variable is perfectly correlated with its scaled version, while reimbursement remains most strongly tied to receipts and per-day costs.}
+    \label{fig:eda-corr-fe}
+\end{figure}
+
+After adding domain-motivated features (per-mile cost, per day cost, receipt ratio and miles per day) and standardized versions of the raw inputs, we recomputed the correlation matrix (Figure~\ref{fig:eda-corr-fe}). Each raw feature is perfectly correlated with its scaled counterpart, confirming that standardization changes only the scale, not the information content. Reimbursement shows its strongest associations with total receipts and cost per day, and a moderate relationship with the duration of the trip, while miles-per-day behaves as a largely independent dimension of “trip intensity.” These patterns support our decision to retain both raw and engineered features in the modeling stage, particularly for flexible tree-based models and polynomial regressors that can exploit nonlinear interactions.
+
+
+\subsection{Scaling and normalization}
+
+The three base inputs live on different scales: durations from 1--14 days,
+miles up to about 1{,}300, and receipts up to about \$2{,}500. To support
+algorithms that are sensitive to feature scale, standardized versions of
+these variables were created:
+\begin{itemize}
+  \item \texttt{miles\_traveled\_scaled},
+  \item \texttt{total\_receipts\_amount\_scaled},
+  \item \texttt{trip\_duration\_days\_scaled}.
+\end{itemize}
+Each scaled feature is computed as
+\[
+  x^{\text{scaled}}
+  =
+  \frac{x - \mu_x}{\sigma_x},
+\]
+where $\mu_x$ and $\sigma_x$ are the sample mean and standard deviation of
+the original feature. These standardized variables have a mean approximately
+zero and unit variance. They are primarily used by linear and regularized
+models; tree-based models can operate directly on the original scales.
+
+\subsection{Final analysis dataset}
+
+After cleaning, feature engineering, and scaling, the final analysis
+dataset is represented by \texttt{features\_processed.csv}, containing
+1{,}000 rows and 11 numeric columns. The dataset includes:
+clean base variables, interpretable per-mile and per-day features,
+receipt-to-reimbursement ratios, and standardized versions of key inputs.
+This set of enriched features forms the basis for the modeling and
+interpretation described below.
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Modeling Approach and Model Selection}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\subsection{Modeling objective and strategy}
+
+The modeling objective is to learn a function that approximates the legacy
+reimbursement engine:
+\[
+  f:
+  \bigl(
+    \texttt{trip\_duration\_days},
+    \texttt{miles\_traveled},
+    \texttt{total\_receipts\_amount}
+  \bigr)
+  \mapsto
+  \texttt{reimbursement\_amount}.
+\]
+We want this learned function to match the legacy system’s output as closely as
+possible for historical cases, generalize well to unseen trips with similar
+characteristics, and be fast and robust enough to be embedded in a production script
+that satisfies the project constraints (three numeric inputs, one numeric
+output, runtime less than five seconds and no external service dependencies).
+
+To make the workflow reproducible and extensible, the team organized the code
+around three core components:
+\begin{itemize}
+  \item \textbf{ModelConfig}, which loads the JSON data, constructs the feature
+        matrix and target vector, performs an 80/20 train–test split, and
+        computes evaluation metrics consistently across models.
+  \item \textbf{BuildModels}, which reads a YAML configuration file
+        (\texttt{pipelines.yaml}) and instantiates a collection of
+        \texttt{sklearn.pipeline.Pipeline} objects, pairing preprocessing steps
+        with linear and tree-based regressors.
+  \item \textbf{FinalModelTrainer}, which retrains the
+best-performing pipeline selected on all available data and serializes it as
+ final \texttt{\_model.pkl} for use by the predict.py production script
+        \texttt{.}.
+\end{itemize}
+In parallel, an \textbf{XGBModelRunner} and a \textbf{ShapAnalyzer} were
+implemented to benchmark XGBoost and to support the interpretability analysis
+described later in Section~\ref{sec:model-interpretability}.
+
+\subsection{Train–test split and evaluation metrics}
+
+All models share the same evaluation protocol implemented in
+\texttt{ModelConfig}. The complete data set is divided into subsets of training (80\%) and test
+(20\%) using \texttt{train\_test\_split} with a fixed random state
+(42). The input matrix $X$ consists of the relevant features for each pipeline
+(raw and/or engineered), and the target vector $y$ is
+\texttt{reimbursement\_amount}.
+
+For each trained pipeline, \texttt{ModelConfig.evaluate\_model} computes a
+standard set of regression metrics on the held-out test set and returns them as
+a dictionary. These per-model dictionaries are aggregated into a single
+\texttt{pandas} \texttt{DataFrame} and written to
+\texttt{reports/figures/model\_metrics.csv}, which is then used for both
+Table~\ref{tab:model-metrics} and for plotting the comparison figures.
+
+The primary error measures are
+\begin{align*}
+  \text{MAE}
+    &= \frac{1}{n} \sum_{i=1}^n
+       \bigl| \hat{y}_i - y_i \bigr|, \\
+  \text{RMSE}
+    &= \sqrt{
+        \frac{1}{n} \sum_{i=1}^n
+        \bigl( \hat{y}_i - y_i \bigr)^2
+       },
+\end{align*}
+where $\hat{y}_i$ and $y_i$ are predicted and true reimbursement amounts
+for case $i$. In addition, we report:
+\begin{itemize}
+  \item median absolute error (MedAE): the median of
+        $|\hat{y}_i - y_i|$;
+  \item coefficient of determination ($R^2$);
+  \item 90th and 95th percentiles of absolute error (P90, P95);
+  \item maximum absolute error (MaxE);
+  \item mean absolute percentage error (MAPE), expressed as a percentage.
+\end{itemize}
+MAE is the primary selection metric because it directly corresponds to the
+average dollar deviation from the legacy system. The error quantiles (P90,
+P95) and MaxE are used to assess tail behavior and identify whether there are
+small pockets of trips with much larger errors than average.
+
+\subsection{Model families evaluated}
+
+We evaluated a spectrum of models, from simple linear baselines to flexible
+tree ensembles, all defined in \texttt{pipelines.yaml}:
+
+\begin{itemize}
+  \item \textbf{Linear / Regularized} (\texttt{ols}, \texttt{rr\_1},
+        \texttt{rr\_10}, \texttt{rr\_0.1}, \texttt{lasso}, \texttt{enet}):
+        each pipeline applies a \texttt{StandardScaler} followed by a linear
+        estimator (Ordinary Least Squares, Ridge with multiple penalty
+        strengths, Lasso, or Elastic Net). These models test whether a purely
+        linear relationship between the engineered features and the reimbursement
+        amount is adequate.
+  \item \textbf{Polynomial Ridge} (\texttt{prr2}, \texttt{prr3}): the
+        standardized inputs are expanded with second- or third-order polynomial
+        features and then fed to a Ridge regressor, allowing smooth global
+        nonlinearities.
+  \item \textbf{Decision Trees} (\texttt{dt\_5}, \texttt{dt\_10},
+        \texttt{dt\_25}, \texttt{dt\_50}): single regression trees of varying
+        depth that model piecewise-constant rules in the original feature
+        space. They are easy to visualize, but they can overfit when deep.
+  \item \textbf{Random Forests} (\texttt{rf\_6}, \texttt{rf\_12}): ensembles
+        that average predictions across many randomized trees to reduce
+        variance while still capturing complex interactions.
+  \item \textbf{Gradient Boosting} (\texttt{gbr\_base}, \texttt{gbr\_slow},
+        \texttt{gbr\_shallow}, \texttt{gbr\_stochastic}): Gradient Boosting
+        Regressors that build trees sequentially, with each new tree
+        correcting residual errors from the ensemble so far. The
+        configurations differ in learning rate, number of estimators, tree
+        depth, and subsampling strategy.
+\end{itemize}
+
+In addition to these scikit-learn pipelines, we trained a single
+\textbf{XGBoost} model using the \texttt{XGBRegressor} implementation from
+the \texttt{xgboost} library, with squared-error loss, 300 trees,
+maximum depth~4, learning rate~0.05, subsample and column-subsample
+rates of~0.9, and \texttt{tree\_method=hist}. This model uses
+only the three original inputs
+$(\texttt{trip\_duration\_days}, \texttt{miles\_traveled},
+\texttt{total\_receipts\_amount})$ and serves as an external reference point and the
+basis for the SHAP analysis in Section~\ref{sec:model-interpretability}.
+
+\subsection{Comparative performance, diagnostics, and final choice}
+
+\begin{table}[t]
+  \centering
+  \scriptsize
+  \resizebox{\textwidth}{!}{%
+  \begin{tabular}{llrrrrrrr}
+    \toprule
+    Family & Model & MAE & RMSE & MedAE & $R^2$ & P90 & MaxE & MAPE (\%) \\
+    \midrule
+    \rowcolor{linclr}
+    Linear / Regularized & \texttt{ols}     & 167.014 & 208.790 & 153.310 & 0.781 & 302.117 & 1058.583 & 14.98 \\
+    \rowcolor{linclr}
+    Linear / Regularized & \texttt{rr\_1}   & 166.982 & 208.724 & 153.870 & 0.781 & 301.846 & 1058.397 & 14.99 \\
+    \rowcolor{linclr}
+    Linear / Regularized & \texttt{rr\_{10}}& 166.716 & 208.180 & 155.445 & 0.782 & 299.428 & 1056.737 & 15.06 \\
+    \rowcolor{linclr}
+    Linear / Regularized & \texttt{rr\_{0.1}}& 167.011 & 208.784 & 153.371 & 0.781 & 302.090 & 1058.565 & 14.99 \\
+    \rowcolor{linclr}
+    Linear / Regularized & \texttt{lasso}   & 167.000 & 208.763 & 153.558 & 0.781 & 301.988 & 1058.526 & 14.99 \\
+    \rowcolor{linclr}
+    Linear / Regularized & \texttt{enet}    & 165.944 & 206.941 & 152.605 & 0.784 & 300.754 & 1051.412 & 15.29 \\
+    \midrule
+    \rowcolor{polyclr}
+    Polynomial Ridge     & \texttt{prr2}    & 103.124 & 143.753 &  81.139 & 0.896 & 191.012 & 1030.866 & 10.40 \\
+    \rowcolor{polyclr}
+    Polynomial Ridge     & \texttt{prr3}    &  96.346 & 133.410 &  86.591 & 0.910 & 177.225 & 1006.449 &  9.32 \\
+    \midrule
+    \rowcolor{dtclr}
+    Decision Tree        & \texttt{dt\_5}   & 114.668 & 155.834 &  88.842 & 0.878 & 224.717 & 1033.034 & 10.34 \\
+    \rowcolor{dtclr}
+    Decision Tree        & \texttt{dt\_{10}}&  98.398 & 145.148 &  69.995 & 0.894 & 213.420 &  975.710 &  9.38 \\
+    \rowcolor{dtclr}
+    Decision Tree        & \texttt{dt\_{25}}&  97.245 & 143.388 &  75.785 & 0.897 & 198.240 &  974.510 &  9.20 \\
+    \rowcolor{dtclr}
+    Decision Tree        & \texttt{dt\_{50}}&  97.245 & 143.388 &  75.785 & 0.897 & 198.240 &  974.510 &  9.20 \\
+    \midrule
+    \rowcolor{rfclr}
+    Random Forest        & \texttt{rf\_6}   &  75.161 & 113.230 &  57.669 & 0.935 & 151.916 &  978.794 &  6.88 \\
+    \rowcolor{rfclr}
+    Random Forest        & \texttt{rf\_{12}}&  71.447 & 112.530 &  50.160 & 0.936 & 154.515 &  989.439 &  6.67 \\
+    \midrule
+    \rowcolor{gbrclr}
+    Gradient Boosting    & \texttt{gbr\_base}       &  70.106 & 110.160 &  53.268 & 0.939 & 136.508 &  978.193 &  6.48 \\
+    \rowcolor{gbrclr}
+    Gradient Boosting    & \texttt{gbr\_slow}       &  70.918 & 110.012 &  56.384 & 0.939 & 134.637 &  993.184 &  6.57 \\
+    \rowcolor{gbrclr}
+    Gradient Boosting    & \texttt{gbr\_shallow}    &  68.449 & 106.763 &  52.474 & 0.943 & 135.225 &  978.776 &  6.35 \\
+    \rowcolor{gbrclr}
+    Gradient Boosting    & \texttt{gbr\_stochastic} &  73.236 & 112.113 &  54.797 & 0.937 & 154.261 &  960.398 &  6.67 \\
+    \bottomrule
+  \end{tabular}%
+  }
+  \caption{Test-set performance metrics for all candidate models, grouped by
+  model family. Linear and regularized models form a high-error baseline;
+  nonlinear models (polynomial Ridge, decision trees) improve accuracy; and
+  tree-based ensembles (random forests and Gradient Boosting) provide the
+  lowest MAE and highest $R^2$.}
+  \label{tab:model-metrics}
+\end{table}
+
+
+Table~\ref{tab:model-metrics} summarizes test-set performance across all
+candidate models and metrics. Linear and regularized models form a clear
+baseline: despite different penalty strengths, they all achieve
+MAE $\approx \$166$–\$167 and $R^2 \approx 0.78$, indicating that a global
+linear fit cannot fully capture the reimbursement rules.
+
+Adding polynomial terms (\texttt{prr2}, \texttt{prr3}) substantially improves
+accuracy, reducing MAE to roughly \$103 and \$96 and increasing
+$R^2$ to about 0.90–0.91. Single decision trees further highlight the value of
+nonlinearity: shallow trees (\texttt{dt\_5}) already outperform linear models,
+and deeper trees (\texttt{dt\_25}, \texttt{dt\_50}) approach the performance of
+polynomial Ridge while remaining highly interpretable. However, their errors
+are still dominated by ensemble methods.
+
+Tree-based ensembles deliver the best overall performance. Random forests
+(\texttt{rf\_6}, \texttt{rf\_12}) reduce MAE to the \$71–\$75 range with
+$R^2 \approx 0.94$, showing that aggregating many trees yields a much more
+faithful approximation to the legacy engine. Gradient boosting goes a step
+further: across the four configurations, MAE falls to the \$68–\$73 range with
+similar or slightly better $R^2$. The \texttt{gbr\_shallow} configuration is
+the strongest of the scikit-learn models, achieving
+MAE $\approx \$68.45$, RMSE $\approx \$106.76$, MedAE $\approx \$52.47$,
+$R^2 \approx 0.94$, and MAPE $\approx 6.35\%$.
+
+The XGBoost benchmark attains test errors in essentially the same range as
+\texttt{gbr\_shallow}; its MAE, RMSE, and $R^2$ closely match those of the best
+Gradient Boosting pipeline. This agreement between two independent
+implementations of boosted trees increases confidence that we are genuinely
+recovering the underlying mapping from trip characteristics to reimbursement,
+rather than overfitting to artifacts of a particular library.
+
+Figures~\ref{fig:mae-bar} and~\ref{fig:mae-r2} visualize the same comparison
+graphically. Figure~\ref{fig:mae-bar} orders models by MAE test-set, showing
+linear baselines at the end of high-error, followed by polynomial slope, single
+trees, random forests, and gradient boosting variants. The
+\texttt{gbr\_shallow} configuration is highlighted as the final chosen model.
+Figure~\ref{fig:mae-r2} plots MAE against $R^2$ with points colored by model
+family; tree-based ensembles clearly dominate the Pareto frontier in the
+low-MAE, high-$R^2$ region.
+
+Beyond aggregate metrics, we also performed basic diagnostic checks on the
+final model.The Prediction-versus-actual and residual plots for the selected Gradient
+Boosting model \texttt{gbr\_shallow} (Figure~\ref{fig:gbr-performance})
+show that the test points lie close to the 45-degree line and that the residuals
+are approximately centered at zero, with slightly larger spread only
+for the highest-reimbursement trips.
+
+\begin{figure}[t]
+    \centering
+    \begin{subfigure}[b]{0.40\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{figures/gbr_shallow_pred_vs_actual.png}
+        \caption{Predicted vs.\ Actual Reimbursement.}
+        \label{fig:gbr-pred-actual}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b]{0.58\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{figures/gbr_shallow_residual_hist.png}
+        \caption{Distribution of Residuals (prediction minus actual).}
+        \label{fig:gbr-residual-hist}
+    \end{subfigure}
+    \caption{Predictive diagnostics for the selected Gradient Boosting model
+    (\texttt{gbr\_shallow}) on the held-out test set. Panel~(a) shows that
+    predictions track the legacy reimbursement engine closely across the full
+    range of trips, while panel~(b) shows a roughly symmetric residual
+    distribution centered near zero with no strong evidence of systematic bias.}
+    \label{fig:gbr-performance}
+\end{figure}
+
+
+A simple calibration plot for \texttt{gbr\_shallow}
+(Figure~\ref{fig:gbr-calibration}) was constructed by binning test cases into
+deciles of predicted reimbursement and plotting mean predicted versus mean
+actual reimbursement in each bin. The calibration curve tracks the identity
+line closely across the range of interest, with relatively narrow error bars.
+This indicates that the model is not only accurate on average but also
+well-calibrated: when it predicts, say, \$1{,}200, the realized reimbursements
+in that region are typically close to \$1{,}200 as well.
+
+Together, these results led us to select \texttt{gbr\_shallow} as the
+primary deployed model. It offers the best trade-off between accuracy,
+robustness, computational cost, and compatibility with the scikit-learn–based
+production pipeline, while the XGBoost surrogate is retained as a secondary
+benchmark and as the foundation for the SHAP interpretability analysis.
+
+\subsection{Overall comparison and final model selection}
+
+Figure~\ref{fig:mae-bar} summarizes the MAE of all candidate models on the
+test set, while Figure~\ref{fig:mae-r2} plots the trade-off between MAE
+and $R^2$.
+
+\begin{figure}[ht]
+  \centering
+  \includegraphics[width=1.0\textwidth]{figures/model_mae_bar}
+  \caption{Test-set mean absolute error (MAE) for all candidate models,
+  sorted from highest to lowest error. Linear models cluster at the top,
+  followed by polynomial Ridge models, single decision trees, random
+  forests, and gradient boosting variants.}
+  \label{fig:mae-bar}
+\end{figure}
+
+\begin{figure}[ht]
+  \centering
+  \includegraphics[width=1.0\textwidth]{figures/mae_vs_r2_broken_axis}
+  \caption{Trade-off between MAE and $R^2$ across models. Points are
+  colored by model family (linear/regularized, polynomial Ridge,
+  decision tree, random forest, and gradient boosting), with labels
+  for each specific configuration. Tree-based ensembles clearly dominate
+  the Pareto frontier.}
+  \label{fig:mae-r2}
+\end{figure}
+
+Across OLS, Ridge, Lasso, and Elastic Net, MAE remains around \$166–\$167
+and $R^2 \approx 0.78$, indicating that linear models, even with
+regularization, cannot fully capture the behavior of the legacy engine.
+Introducing polynomial features substantially improves performance:
+\texttt{prr2} and \texttt{prr3} reduce MAE to roughly \$103 and \$96,
+respectively, confirming the importance of nonlinear interactions.
+
+Tree-based ensemble methods yield the best results. Increasing the depth
+of the random forest from 6 to 12 reduces MAE from about \$75 to \$71,
+while gradient boosting configurations achieve MAE in the \$68–\$73
+range. The \texttt{gbr\_shallow} configuration more than halves the MAE
+relative to any linear model and achieves $R^2$ values above 0.94.
+A separate XGBoost benchmark model (described in
+Section~\ref{sec:model-interpretability}) attains very similar MAE and
+$R^2$, providing an external check that boosted trees are well suited to
+this problem.
+
+Based on these results and the desire to keep the production pipeline
+within the scikit-learn ecosystem, the team selected
+\texttt{gbr\_shallow} as the primary final model. The
+\texttt{FinalModelTrainer} class retrained this pipeline on the full
+dataset and saved it as \texttt{final\_model.pkl}. The XGBoost benchmark
+model was also retrained on all data and saved as
+\texttt{final\_model\_xgb.pkl} for future reference.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Model Interpretability}
+\label{sec:model-interpretability}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+Beyond aggregate error metrics, we also examined how our best tree-based
+models arrive at their predictions.  In particular, we trained an
+XGBoost regressor on the same training–test split as the earlier
+scikit-learn models and then used SHAP values to understand which input
+variables drive its predictions and whether this behavior is consistent
+with our exploratory data analysis and domain expectations.
+
+\paragraph{Calibration check.}
+Beyond residual plots, we also checked how well the final
+\texttt{gbr\_shallow} model is calibrated with respect to the legacy
+engine.  We binned test-set predictions into deciles and, for each bin
+, computed the mean predicted reimbursement and the mean actual
+reimbursement, with vertical error bars showing the standard deviation
+of the actual values.  In a perfectly calibrated model, these points
+would lie on the 45-degree line.  As shown in
+Figure~\ref{fig:gbr-calibration}, the bins for our model fall close to
+this diagonal across most of the range, with only mild deviation in the
+highest-spend bin.  This indicates that the model not only achieves low
+average error, but also assigns reimbursement levels that are broadly
+consistent with the legacy system across low, medium, and high-cost
+trips.
+
+\begin{figure}[t]
+  \centering
+  \includegraphics[width=0.7\textwidth]{figures/gbr_shallow_calibration}
+  \caption{Calibration plot for the final Gradient Boosting model
+  (\texttt{gbr\_shallow}).  Each point corresponds to a bin of test
+  cases grouped by predicted reimbursement; the $x$-axis shows the mean
+  predicted reimbursement in the bin, the $y$-axis shows the mean actual
+  reimbursement, and the error bars indicate one standard deviation of
+  the actual values.  Points lying near the 45-degree line indicate good
+  calibration relative to the legacy reimbursement engine.}
+  \label{fig:gbr-calibration}
+\end{figure}
+
+
+\subsection{XGBoost surrogate model}
+\label{subsec:xgb-surrogate}
+
+XGBoost provides a flexible gradient-boosted tree ensemble that is
+well-suited for approximating the unknown rule set implemented by the
+legacy reimbursement engine.  We trained a single XGBoost model on the
+three original input variables
+\texttt{input.trip\_duration\_days},
+\texttt{input.miles\_traveled}, and
+\texttt{input.total\_receipts\_amount}, using the same 80/20
+train–test split and target \texttt{reimbursement\_amount} as for the
+scikit-learn pipelines.  Hyperparameters were chosen to give a
+reasonably smooth model (moderate depth and learning rate) while still
+achieving performance comparable to the best scikit-learn gradient
+boosting configuration.
+
+\begin{figure}[t]
+  \centering
+  \includegraphics[width=0.6\textwidth]{figures/xgb_pred_vs_actual}
+  \caption{XGBoost prediction versus actual reimbursement on the test
+           set. Each point represents one trip; the dashed line is the
+           ideal $y = x$ reference where prediction and legacy output
+           agree exactly.}
+  \label{fig:xgb-pred-actual}
+\end{figure}
+
+Figure~\ref{fig:xgb-pred-actual} shows predicted versus actual
+reimbursements in the held test set.  The points cluster tightly
+around the $y = x$ diagonal, indicating that the XGBoost model recovers
+the legacy engine’s outputs with very small systematic bias across the
+full range of reimbursement amounts.  The cloud of points widens
+slightly at higher reimbursement levels, but even there the spread
+remains modest relative to the overall scale of the target.
+
+The residual histogram in
+Figure~\ref{fig:xgb-residuals} provides a complementary view of model
+error.  Most residuals (prediction minus actual) fall in a narrow band
+around zero, with a roughly symmetric shape and no obvious heavy tails.
+This suggests that, conditional on the three inputs, the remaining
+discrepancy between XGBoost and the legacy engine is largely idiosyncratic
+noise rather than a systematic miss in the functional form.  There is a
+small number of large positive residuals, corresponding to trips for
+which the legacy engine reimbursed much more than would be expected
+based on typical patterns; these appear to be genuine outliers in the
+historical data rather than a pervasive weakness of the model.
+
+\begin{figure}[t]
+  \centering
+  \includegraphics[width=0.75\textwidth]{figures/xgb_residual_hist.png}
+  \caption{Distribution of residuals ($\hat{y} - y$) for the XGBoost
+           model on the test set.  Most trips have prediction errors
+           clustered close to zero, with a small number of large
+           positive outliers.}
+  \label{fig:xgb-residuals}
+\end{figure}
+
+Overall, the XGBoost surrogate matches the legacy engine’s behavior
+closely and achieves test-set accuracy comparable to the best
+scikit-learn gradient boosting pipeline.  We therefore use this model as
+the basis for our SHAP-based interpretability analysis.
+
+\subsection{Global feature importance with SHAP}
+\label{subsec:shap-interpretability}
+
+To understand how the surrogate model uses the three inputs, we applied
+TreeSHAP to the trained XGBoost ensemble and computed SHAP values on the
+test set.  SHAP values decompose each prediction into additive feature
+contributions relative to a baseline, which lets us reason about both
+global patterns and individual cases using a consistent framework.
+
+Figure~\ref{fig:xgb-shap-summary} presents a SHAP summary
+(beeswarm) plot for the three original input features.  Each row
+corresponds to one feature, and each point is a single trip.  The
+horizontal position encodes the SHAP value (impact on the model output),
+while color encodes the raw feature value (blue = low, pink = high).
+Several conclusions emerge:
+
+\begin{itemize}
+  \item \textbf{\texttt{input.total\_receipts\_amount}} is the dominant
+        driver of the model.  High receipt totals (pink points) almost
+        always have positive SHAP values, pushing the predicted
+        reimbursement above the baseline, while low receipts (blue)
+        tend to pull predictions downward.  This confirms that the
+        learned model behaves primarily like a “receipts-aware”
+        reimbursement engine rather than a pure mileage-based scheme.
+  \item \textbf{\texttt{input.trip\_duration\_days}} plays a strong but
+        secondary role.  Long trips (high values, in pink) are
+        associated with positive SHAP contributions, whereas very short
+        trips exert a downward pull.  This is consistent with an
+        implicit per-diem component in the legacy rules: for a fixed
+        level of receipts, additional days generally increase the
+        reimbursement.
+  \item \textbf{\texttt{input.miles\_traveled}} provides finer-grained
+        adjustments.  Its SHAP values are smaller in magnitude but show
+        a clear pattern: high-mileage trips (pink) typically nudge the
+        prediction upward relative to low-mileage trips with similar
+        receipts and duration, reflecting an additional mileage-based
+        component in the underlying logic.
+\end{itemize}
+
+\begin{figure}[t]
+  \centering
+  \includegraphics[width=\textwidth]{figures/xgb_shap_summary.png}
+  \caption{SHAP summary plot for the XGBoost model, using the three
+           original inputs.  Each point is a trip; the horizontal axis
+           shows the SHAP value (feature contribution to the
+           reimbursement prediction), and color encodes the raw feature
+           value (blue = low, pink = high).  The features are ordered by
+           their overall impact on the model output.}
+  \label{fig:xgb-shap-summary}
+\end{figure}
+
+To probe the structure of the learned reimbursement rule in more detail,
+we generated a SHAP dependence plot for
+\texttt{input.total\_receipts\_amount}, with color indicating
+\texttt{input.miles\_traveled}
+(Figure~\ref{fig:xgb-shap-dependence-receipts}).  At low receipt
+totals, SHAP values are strongly negative: the model predicts much less
+than the dataset-wide baseline reimbursement, reflecting the simple fact
+that trips with very little documented spending tend to receive low
+payouts.  Between roughly \$600 and \$1{,}000, the curve rises steeply:
+in this region, additional receipts have a large marginal effect on the
+predicted reimbursement, suggesting that the legacy engine is filling in
+per-diem or mileage components on top of a growing receipts base.
+Beyond approximately \$1{,}500, the SHAP values level off and even show
+slight decline, indicating diminishing marginal impact of receipts at
+the high end.  This flattening is consistent with soft caps or
+saturation effects in the reimbursement rules (for example, daily or
+overall trip limits).
+
+The color gradient in the dependence plot also reveals how mileage
+modulates the receipts effect.  At a fixed receipts level, points with
+higher \texttt{input.miles\_traveled} values (pink) tend to sit slightly
+above those with lower mileage (blue), indicating that the model
+increases reimbursement somewhat for trips that cover more distance even
+after accounting for receipts and duration.
+
+\begin{figure}[t]
+  \centering
+  \includegraphics[width=0.75\textwidth]{figures/xgb_shap_dependence_input.total_receipts_amount.png}
+  \caption{SHAP dependence plot for \texttt{input.total\_receipts\_amount}
+           in the XGBoost model, with points colored by
+           \texttt{input.miles\_traveled}.  The vertical axis shows the
+           contribution of receipts to the predicted reimbursement; the
+           curve exhibits a steep rise at moderate receipts followed by
+           a saturation region at higher spending levels.}
+  \label{fig:xgb-shap-dependence-receipts}
+\end{figure}
+
+Taken together, the SHAP analysis shows that the XGBoost surrogate has
+learned a behavior that aligns well with business expectations: predicted
+reimbursement is driven primarily by total receipts, modulated by trip
+duration and distance traveled.  The non-linear dependence on receipts,
+particularly the saturation at high spending, suggests that the
+underlying legacy engine enforces implicit caps or diminishing returns
+on very expensive trips—exactly the kind of rule structure we sought to
+reverse-engineer with this project.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Discussion and Conclusions}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+Using only three descriptive inputs drawn from historical reimbursement
+cases, we built a modern supervised-learning surrogate for a legacy travel
+reimbursement engine. After careful feature engineering, scaling, and
+model comparison, we found that:
+
+\begin{itemize}
+  \item Simple linear models explain roughly 78\% of the variance in
+        reimbursements but leave substantial residual error
+        (MAE $\approx \$166$).
+  \item Polynomial models and single decision trees substantially reduce
+        error, highlighting the importance of nonlinear relationships,
+        but still underperform tree ensembles.
+  \item Random forests and gradient boosting methods more than halve the
+        MAE relative to linear baselines, with \texttt{gbr\_shallow}
+        achieving MAE around \$68 and $R^2 > 0.94$.
+  \item A tuned XGBoost model provides very similar accuracy, confirming
+        that boosted trees are well suited to this problem.
+   \item Interpretability tools—feature importance, residual analysis, and SHAP values—paint a consistent picture: reimbursement amounts are driven primarily by total receipts, with trip duration and miles traveled providing secondary refinements.
+\end{itemize}
+
+Overall, the final Gradient Boosting Regressor offers a strong and
+interpretable approximation to the legacy reimbursement engine. It can be
+deployed as a lightweight script that accepts three numeric inputs and
+returns a single reimbursement amount while preserving transparency about
+how predictions are made and how accurate they are likely to be.
+
+\subsection{Limitations and future work}
+
+This project deliberately focused on reproducing the existing reimbursement engine as a surrogate model rather than designing a new policy from first principles. As a result, the learned model inherits any quirks or biases of the legacy system, including potential edge cases that may not align with current business goals. In addition, all models are constrained to use only three numeric inputs, so any rules based on other information (such as traveler role, destination region, or exceptional approvals) cannot be captured. Our evaluation is based on a single 80/20 train--test split rather than full cross-validation, so performance metrics could vary slightly under a different split of the data.
+
+Future work could incorporate richer features (for example, categorical encodings of route type or traveler segment), apply cross-validation or time-aware validation if new data arrive over time, and explore model compression or rule extraction to translate the boosted-tree logic into a small set of human-readable reimbursement rules that can be compared directly with the written travel policy.
+
+\end{document}
